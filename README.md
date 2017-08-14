@@ -3,7 +3,7 @@ moodle-tool_opcache
 
 [![Build Status](https://travis-ci.org/moodleuulm/moodle-tool_opcache.svg?branch=master)](https://travis-ci.org/moodleuulm/moodle-tool_opcache)
 
-Moodle plugin which adds a PHP Opcache management GUI to Moodle site administration.
+Moodle plugin which adds a PHP Opcache management GUI to Moodle site administration and a Nagios check for PHP Opcache.
 
 
 Requirements
@@ -20,6 +20,8 @@ For performance reasons, Moodle should always be run with the Opcache PHP extens
 Luckily, there are some free Opcache management GUIs out there with Opcache-GUI by Andrew Collington (https://github.com/amnuts/opcache-gui) being the best-looking one. As a Moodle server administrator, can just throw Opcache-GUI's single index.php file somewhere onto your Moodle server and get a Opcache management GUI instantly. However, this approach requires that you protect the Opcache-GUI from unauthorized access manually in your webserver and comes with the downside that Opcache-GUI is located outside Moodle.
 
 For these reasons, we have packaged Opcache-GUI as a very simple Moodle admin tool providing it within Moodle site adminstration for Moodle administrators only.
+
+As a companion feature to the Opcache-GUI which is used manually by Moodle administrators, we added a simple Nagios check for PHP Opcache which can be leveraged to monitor PHP Opcache usage automatically.
 
 
 Installation
@@ -47,6 +49,35 @@ How this plugin works
 ---------------------
 
 This plugin works in a really simple way. It adds an admin tool page to Moodle's site administration tree and restricts access to this admin tool page to Moodle administrators (and other users having the moodle/site:config capability). Opcache-GUI is shipped as a library file with this plugin and is just included on the admin tool page.
+
+
+Nagios check
+------------
+
+The Nagios check for PHP Opcache is found in the cli subdirectory of the plugin directory. It consists of two parts:
+
+### cli/check_opcache_web.php
+
+This file has to be run within the webserver environment and is thus shipped within this plugin. Its only purpose is to collect some basic figures of the current PHP Opcache usage and to return them one figure per line.
+
+### cli/check_opcache.php
+
+This file is a Moodle CLI script which can only be run on the command line. It is intended to be used by Nagios / NRPE or compatible monitoring solutions. To be able to fetch the basic figures provided by check_opcache_web.php, you have to provide the full URL to check_opcache_web.php as parameter.
+
+Example usage:
+```
+sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php --url=\"https://example.com/admin/tool/opcache/cli/check_opcache_web.php\" --warning=80 --critical=90
+```
+
+For more information about the usage run:
+```
+sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php --help
+```
+
+The CLI script will return a string similar to:
+```
+OK - 28.5% cache used | used_pct=28.5%;80;90 hit_pct=72.95%; miss_pct=27.05%;
+```
 
 
 Theme support
@@ -138,3 +169,5 @@ Credits
 
 This Moodle plugin is only a simple wrapper for Opcache-GUI by Andrew Collington.
 Andrew owns all copyrights for Opcache-GUI and maintains this tool on https://github.com/amnuts/opcache-gui.
+
+The Nagios check in this plugin was inspired by code by Mikanoshi which is published on https://exchange.icinga.com/Mikanoshi/PHP+opcache+monitoring+plugin.
