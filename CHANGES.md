@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### Release v3.2-r2
 
 * 2017-08-14 - Add nagios check as CLI script
 
