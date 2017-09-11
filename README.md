@@ -51,6 +51,16 @@ How this plugin works
 This plugin works in a really simple way. It adds an admin tool page to Moodle's site administration tree and restricts access to this admin tool page to Moodle administrators (and other users having the moodle/site:config capability). Opcache-GUI is shipped as a library file with this plugin and is just included on the admin tool page.
 
 
+Security note
+-------------
+
+The Opcache-GUI was added as a library to this Moodle plugin and was renamed to /lib/opcache-gui/index.php.inc.
+
+There is a potential for sensitive data leak, not personal data but data about the webserver's PHP configuration, if your webserver is configured to interpret *.inc files as PHP. An anonymous user could then visit the library's index page directly via https://yourmoodle.com/admin/tool/opcache/lib/opcache-gui/index.php.inc and would see the Opcache-GUI circumventing Moodle's access control.
+
+Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) or take any other measure that this file can not be accessed directly by a browser.
+
+
 Nagios check
 ------------
 
