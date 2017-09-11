@@ -32,7 +32,7 @@ admin_externalpage_setup('tool_opcache');
 // Request mode: Real-time update AJAX request.
 if (optional_param('_', 0, PARAM_INT)) {
     // Include Opcache just for returning the AJAX request like it would work when Opcache GUI is called standalone.
-    require_once(dirname(__FILE__).'/lib/opcache-gui/index.php.inc');
+    require_once(__DIR__ . '/lib/opcache-gui/index.php.inc');
 
     // Request mode: Display Opcache GUI.
 } else {
@@ -48,7 +48,7 @@ if (optional_param('_', 0, PARAM_INT)) {
     echo $OUTPUT->header();
 
     // Include Opcache GUI.
-    require_once(dirname(__FILE__).'/lib/opcache-gui/index.php.inc');
+    require_once(__DIR__ . '/lib/opcache-gui/index.php.inc');
 
     // Page setup.
     echo $OUTPUT->footer();
