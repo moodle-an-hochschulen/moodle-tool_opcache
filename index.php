@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(dirname(__FILE__).'/../../../config.php');
+require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 
 // Set up the plugin's main page as external admin page.
