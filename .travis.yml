@@ -24,7 +24,7 @@ env:
   - MOODLE_BRANCH=MOODLE_32_STABLE
  matrix:
   - DB=pgsql
-  - DB=mysqli
+#  - DB=mysqli - MySQL is disabled because this plugin does not need a database at all.
 
 before_install:
   - phpenv config-rm xdebug.ini
