@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### Release v3.2-r3
 
 * 2017-09-11 - Disable MySQL in Travis CI, credits to David Mudrák
 * 2017-09-11 - Add security note to README
