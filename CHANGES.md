@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2017-11-08 - Updated travis.yml to use newer node version for fixing TravisCI error.
+
 ### Release v3.2-r3
 
 * 2017-09-11 - Disable MySQL in Travis CI, credits to David Mudrák
