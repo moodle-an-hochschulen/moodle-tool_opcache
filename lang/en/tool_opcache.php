@@ -25,3 +25,4 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'Opcache management';
+$string['privacy:metadata'] = 'The Opcache management plugin provides extended functionality to Moodle admins, but does not store any personal data.';

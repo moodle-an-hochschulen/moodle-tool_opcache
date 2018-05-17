@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2018-05-16 - Implement Privacy API.
+
 ### v3.4-r2
 
 * 2018-04-21 - Update OPCache GUI to latest version from upstream
