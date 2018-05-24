@@ -9,7 +9,7 @@ Moodle plugin which adds a PHP Opcache management GUI to Moodle site administrat
 Requirements
 ------------
 
-This plugin requires Moodle 3.4+
+This plugin requires Moodle 3.5+
 
 
 Motivation for this plugin
@@ -94,7 +94,8 @@ Theme support
 -------------
 
 This plugin should work with all Bootstrap based Moodle themes.
-It has been developed on and tested with Moodle Core's Clean and Boost themes.
+It has been developed on and tested only with Moodle Core's Boost theme.
+While this plugin should also work with Moodle Core's legacy Clean theme or third party themes, we can't support any other theme than Boost.
 
 
 Plugin repositories

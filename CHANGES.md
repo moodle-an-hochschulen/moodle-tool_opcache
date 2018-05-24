@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2018-05-24 - Check compatibility for Moodle 3.5, no functionality change.
+
 ### v3.4-r3
 
 * 2018-05-16 - Implement Privacy API.
