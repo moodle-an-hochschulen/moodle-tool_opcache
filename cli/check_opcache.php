@@ -63,7 +63,7 @@ Example:
 \$ sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php ".
         "--url=\"https://example.com/admin/tool/opcache/cli/check_opcache_web.php\" --warning=75 --critical=85
 ";
-    echo $help;
+    cli_writeln($help);
     exit($returnstatus);
 }
 
