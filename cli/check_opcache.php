@@ -75,7 +75,9 @@ $options['critical'] = clean_param($options['critical'], PARAM_INT);
 
 
 // Fetch Opcache figures from webserver.
-$curl = new curl();
+$curl = new curl(array('ignoresecurity' => true)); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
+                                                   // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
+                                                   // that the web part of this CLI tool is fetched.
 $curloptions = array(
     'FRESH_CONNECT'  => true,
     'RETURNTRANSFER' => true,
@@ -83,7 +85,17 @@ $curloptions = array(
     'HEADER'         => false,
     'CONNECTTIMEOUT' => 5,
 );
-$curlret = $curl->get($options['url'], array(), $curloptions);
+$params = array();
+if (isset($CFG->tool_opcache_check_secretkey)) {
+    $params['secret'] = $CFG->tool_opcache_check_secretkey;
+}
+$curlret = $curl->get($options['url'], $params, $curloptions);
+
+// Die if secret key was required but not correct (basically, this should not happen).
+if ($curlret == 'FORBIDDEN') {
+    $returnstatus = 2;
+    $out = 'Secret key is required but is not correct.';
+}
 
 // Pick Opcache figures.
 $figures = explode(PHP_EOL, $curlret);

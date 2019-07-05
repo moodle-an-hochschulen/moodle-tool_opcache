@@ -27,6 +27,17 @@
 // Let codechecker ignore this file because otherwise it would complain about a missing MOODLE_INTERNAL check or config.php
 // inclusion which is really not needed.
 
+require(__DIR__.'/../../../../config.php');
+
+global $CFG, $PAGE;
+
+// Die if secret key is set but the submitted secret key is not correct.
+if (isset($CFG->tool_opcache_check_secretkey) &&
+            $CFG->tool_opcache_check_secretkey != clean_param($PAGE->url->get_param('secret'), PARAM_ALPHANUM)) {
+    echo 'FORBIDDEN';
+    exit;
+}
+
 // Get Opcache status.
 $opcache = opcache_get_status();
 
