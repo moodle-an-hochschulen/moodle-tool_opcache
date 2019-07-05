@@ -3,7 +3,7 @@ moodle-tool_opcache
 
 [![Build Status](https://travis-ci.org/moodleuulm/moodle-tool_opcache.svg?branch=master)](https://travis-ci.org/moodleuulm/moodle-tool_opcache)
 
-Moodle plugin which adds a PHP Opcache management GUI to Moodle site administration and a Nagios check for PHP Opcache.
+Moodle plugin which adds a PHP Opcache management GUI to Moodle site administration, a CLI tool to reset PHP Opcache and a Nagios check for PHP Opcache.
 
 
 Requirements
@@ -21,7 +21,9 @@ Luckily, there are some free Opcache management GUIs out there with Opcache-GUI 
 
 For these reasons, we have packaged Opcache-GUI as a very simple Moodle admin tool providing it within Moodle site adminstration for Moodle administrators only.
 
-As a companion feature to the Opcache-GUI which is used manually by Moodle administrators, we added a simple Nagios check for PHP Opcache which can be leveraged to monitor PHP Opcache usage automatically.
+As a companion feature to the Opcache-GUI which is used by Moodle administrators in the browser, we added a simple CLI tool to reset PHP Opcache from the command line.
+
+Additionally as a companion feature to the Opcache-GUI which is used manually by Moodle administrators, we added a simple Nagios check for PHP Opcache which can be leveraged to monitor PHP Opcache usage automatically.
 
 
 Installation
@@ -59,6 +61,47 @@ The Opcache-GUI was added as a library to this Moodle plugin and was renamed to 
 There is a potential for sensitive data leak, not personal data but data about the webserver's PHP configuration, if your webserver is configured to interpret *.inc files as PHP. An anonymous user could then visit the library's index page directly via https://yourmoodle.com/admin/tool/opcache/lib/opcache-gui/index.php.inc and would see the Opcache-GUI circumventing Moodle's access control.
 
 Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) or take any other measure that this file can not be accessed directly by a browser.
+
+
+CLI tool
+--------
+
+The CLI tool for PHP Opcache is found in the cli subdirectory of the plugin directory. It consists of two parts:
+
+### cli/reset_opcache_web.php
+
+This file has to be run within the PHP webserver environment and is thus shipped within this plugin. Its only purpose is to reset PHP Opcache within the PHP webserver enviromnent instead of the PHP CLI environment.
+
+### cli/reset_opcache.php
+
+This file is a Moodle CLI script which can only be run on the command line. To be able to reset PHP Opcache with reset_opcache_web.php, you have to provide the full URL to reset_opcache_web.php as parameter.
+
+
+Security mechanism:
+As cli/reset_opcache_web.php will reset PHP opcache without any Moodle user authentication and as this could be abused for denial-of-service attacks, a secret key has to be set in config.php. This secret key is used internally by cli/reset_opcache.php to call cli/reset_opcache_web.php. Without submitting the correct secret key to cli/reset_opcache_web.php, cli/reset_opcache_web.php will not reset PHP opcache.
+
+To enable this CLI tool, please add this setting to your config.php file and set this setting to an alphanumeric string of your choice:
+```
+$CFG->tool_opcache_reset_secretkey = 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa';
+```
+
+
+Example usage:
+```
+sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php --url=\"https://example.com/admin/tool/opcache/cli/reset_opcache_web.php\" --reset
+```
+
+For more information about the usage run:
+```
+sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php --help
+```
+
+If run successfully, the CLI script will return a clear message:
+```
+PHP opcache has been reset successfully on this server.
+```
+
+If run unsuccessfully, the CLI script will also return an error message.
 
 
 Nagios check
