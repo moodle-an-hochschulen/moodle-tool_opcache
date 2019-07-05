@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+# Unreleased
+
+* 2019-07-05 - Feature: Add CLI tool to reset PHP Opcache. Please see README.md for details.
+
 ### v3.6-r1
 
 * 2019-02-01 - Check compatibility for Moodle 3.6, no functionality change.
