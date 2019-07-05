@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-# Unreleased
+### v3.6-r2
 
 * 2019-07-05 - Feature: Add optional security mechanism to Nagios check. Please see README.md for details.
 * 2019-07-05 - Feature: Add CLI tool to reset PHP Opcache. Please see README.md for details.
