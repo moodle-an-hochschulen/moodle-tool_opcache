@@ -111,11 +111,21 @@ The Nagios check for PHP Opcache is found in the cli subdirectory of the plugin 
 
 ### cli/check_opcache_web.php
 
-This file has to be run within the webserver environment and is thus shipped within this plugin. Its only purpose is to collect some basic figures of the current PHP Opcache usage and to return them one figure per line.
+This file has to be run within the PHP webserver environment and is thus shipped within this plugin. Its only purpose is to collect some basic figures of the current PHP Opcache usage and to return them one figure per line.
 
 ### cli/check_opcache.php
 
 This file is a Moodle CLI script which can only be run on the command line. It is intended to be used by Nagios / NRPE or compatible monitoring solutions. To be able to fetch the basic figures provided by check_opcache_web.php, you have to provide the full URL to check_opcache_web.php as parameter.
+
+
+Security mechanism:
+As cli/clear_opcache_web.php will return some data about PHP opcache usage without any Moodle user authentication and as this might not be desired in all installations, a secret key can be set in config.php. If set, this secret key is used internally by cli/check_opcache.php to call cli/check_opcache_web.php. Without submitting the correct secret key to cli/check_opcache_web.php, cli/check_opcache_web.php will then not return any values.
+
+To enable the security mechanism, please add this setting to your config.php file and set this setting to an alphanumeric string of your choice:
+```
+$CFG->tool_opcache_check_secretkey = 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa';
+```
+
 
 Example usage:
 ```
