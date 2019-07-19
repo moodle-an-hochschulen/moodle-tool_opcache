@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2019-07-19 - Prepare compatibility for Moodle 3.7.
+
 ### v3.6-r2
 
 * 2019-07-05 - Feature: Add optional security mechanism to Nagios check. Please see README.md for details.
