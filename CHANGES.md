@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2019-08-12 - Update OPCache GUI to version 2.4.1 from upstream.
 * 2019-08-05 - Added behat tests.
 * 2019-07-19 - Prepare compatibility for Moodle 3.7.
 

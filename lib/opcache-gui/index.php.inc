@@ -1,23 +1,18 @@
 <?php
-
 namespace OpcacheGui;
-
 /**
  * OPcache GUI
  *
  * A simple but effective single-file GUI for the OPcache PHP extension.
  *
  * @author Andrew Collington, andy@amnuts.com
- * @version 2.4.0
+ * @version 2.4.1
  * @link https://github.com/amnuts/opcache-gui
  * @license MIT, http://acollington.mit-license.org/
  */
-
-
 /*
  * User configuration
  */
-
 $options = [
     'allow_filelist'   => true,          // show/hide the files tab
     'allow_invalidate' => true,          // give a link to invalidate files
@@ -31,20 +26,18 @@ $options = [
     'cookie_name'      => 'opcachegui',  // name of cookie
     'cookie_ttl'       => 365            // days to store cookie
 ];
-
 /*
  * Shouldn't need to alter anything else below here
  */
-
 if (!extension_loaded('Zend OPcache')) {
     die('The Zend OPcache extension does not appear to be installed');
 }
-
 $ocEnabled = ini_get('opcache.enable');
 if (empty($ocEnabled)) {
-    die('The Zend OPcache extension is installed but not turned on');
+    die('The Zend OPcache extension is installed but not active');
 }
-
+header('Cache-Control: no-cache, must-revalidate');
+header('Pragma: no-cache');
 class OpCacheService
 {
     protected $data;
@@ -62,13 +55,11 @@ class OpCacheService
         'cookie_name'      => 'opcachegui',
         'cookie_ttl'       => 365
     ];
-
     private function __construct($options = [])
     {
         $this->options = array_merge($this->defaults, $options);
         $this->data = $this->compileState();
     }
-
     public static function init($options = [])
     {
         $self = new self($options);
@@ -94,7 +85,6 @@ class OpCacheService
         }
         return $self;
     }
-
     public function getOption($name = null)
     {
         if ($name === null) {
@@ -105,7 +95,6 @@ class OpCacheService
             : null
         );
     }
-
     public function getData($section = null, $property = null)
     {
         if ($section === null) {
@@ -120,12 +109,10 @@ class OpCacheService
         }
         return null;
     }
-
     public function canInvalidate()
     {
         return ($this->getOption('allow_invalidate') && function_exists('opcache_invalidate'));
     }
-
     public function resetCache($file = null)
     {
         $success = false;
@@ -139,7 +126,6 @@ class OpCacheService
         }
         return $success;
     }
-
     protected function size($size)
     {
         $i = 0;
@@ -152,12 +138,14 @@ class OpCacheService
             $size, ($this->getOption('size_space') ? ' ' : ''), $val[$i]
         );
     }
-
     protected function compileState()
     {
         $status = opcache_get_status();
         $config = opcache_get_configuration();
-
+        $missingConfig = array_diff_key(ini_get_all('zend opcache', false), $config['directives']);
+        if (!empty($missingConfig)) {
+            $config['directives'] = array_merge($config['directives'], $missingConfig);
+        }
         $files = [];
         if (!empty($status['scripts']) && $this->getOption('allow_filelist')) {
             uasort($status['scripts'], function($a, $b) {
@@ -172,35 +160,37 @@ class OpCacheService
             }
             $files = array_values($status['scripts']);
         }
-
-        $overview = array_merge(
-            $status['memory_usage'], $status['opcache_statistics'], [
-                'used_memory_percentage'  => round(100 * (
-                        ($status['memory_usage']['used_memory'] + $status['memory_usage']['wasted_memory'])
-                        / $config['directives']['opcache.memory_consumption'])),
-                'hit_rate_percentage'     => round($status['opcache_statistics']['opcache_hit_rate']),
-                'wasted_percentage'       => round($status['memory_usage']['current_wasted_percentage'], 2),
-                'readable' => [
-                    'total_memory'       => $this->size($config['directives']['opcache.memory_consumption']),
-                    'used_memory'        => $this->size($status['memory_usage']['used_memory']),
-                    'free_memory'        => $this->size($status['memory_usage']['free_memory']),
-                    'wasted_memory'      => $this->size($status['memory_usage']['wasted_memory']),
-                    'num_cached_scripts' => number_format($status['opcache_statistics']['num_cached_scripts']),
-                    'hits'               => number_format($status['opcache_statistics']['hits']),
-                    'misses'             => number_format($status['opcache_statistics']['misses']),
-                    'blacklist_miss'     => number_format($status['opcache_statistics']['blacklist_misses']),
-                    'num_cached_keys'    => number_format($status['opcache_statistics']['num_cached_keys']),
-                    'max_cached_keys'    => number_format($status['opcache_statistics']['max_cached_keys']),
-                    'interned'           => null,
-                    'start_time'         => date('Y-m-d H:i:s', $status['opcache_statistics']['start_time']),
-                    'last_restart_time'  => ($status['opcache_statistics']['last_restart_time'] == 0
+        if ($config['directives']['opcache.file_cache_only']) {
+            $overview = false;
+        } else {
+            $overview = array_merge(
+                $status['memory_usage'], $status['opcache_statistics'], [
+                    'used_memory_percentage' => round(100 * (
+                            ($status['memory_usage']['used_memory'] + $status['memory_usage']['wasted_memory'])
+                            / $config['directives']['opcache.memory_consumption'])),
+                    'hit_rate_percentage' => round($status['opcache_statistics']['opcache_hit_rate']),
+                    'wasted_percentage' => round($status['memory_usage']['current_wasted_percentage'], 2),
+                    'readable' => [
+                        'total_memory' => $this->size($config['directives']['opcache.memory_consumption']),
+                        'used_memory' => $this->size($status['memory_usage']['used_memory']),
+                        'free_memory' => $this->size($status['memory_usage']['free_memory']),
+                        'wasted_memory' => $this->size($status['memory_usage']['wasted_memory']),
+                        'num_cached_scripts' => number_format($status['opcache_statistics']['num_cached_scripts']),
+                        'hits' => number_format($status['opcache_statistics']['hits']),
+                        'misses' => number_format($status['opcache_statistics']['misses']),
+                        'blacklist_miss' => number_format($status['opcache_statistics']['blacklist_misses']),
+                        'num_cached_keys' => number_format($status['opcache_statistics']['num_cached_keys']),
+                        'max_cached_keys' => number_format($status['opcache_statistics']['max_cached_keys']),
+                        'interned' => null,
+                        'start_time' => date('Y-m-d H:i:s', $status['opcache_statistics']['start_time']),
+                        'last_restart_time' => ($status['opcache_statistics']['last_restart_time'] == 0
                             ? 'never'
                             : date('Y-m-d H:i:s', $status['opcache_statistics']['last_restart_time'])
                         )
+                    ]
                 ]
-            ]
-        );
-
+            );
+        }
         if (!empty($status['interned_strings_usage'])) {
             $overview['readable']['interned'] = [
                 'buffer_size' => $this->size($status['interned_strings_usage']['buffer_size']),
@@ -209,13 +199,17 @@ class OpCacheService
                 'number_of_strings' => number_format($status['interned_strings_usage']['number_of_strings'])
             ];
         }
-
         $directives = [];
         ksort($config['directives']);
         foreach ($config['directives'] as $k => $v) {
-            $directives[] = ['k' => $k, 'v' => $v];
+            if (in_array($k, ['opcache.max_file_size', 'opcache.memory_consumption']) && $v) {
+                $v = $this->size($v) . " ({$v})";
+            }
+            $directives[] = [
+                'k' => $k,
+                'v' => $v
+            ];
         }
-
         $version = array_merge(
             $config['version'],
             [
@@ -232,7 +226,6 @@ class OpCacheService
                 )
             ]
         );
-
         return [
             'version'    => $version,
             'overview'   => $overview,
@@ -243,9 +236,7 @@ class OpCacheService
         ];
     }
 }
-
 $opcache = OpCacheService::init($options);
-
 ?>
 <!DOCTYPE html>
 <html>
@@ -294,6 +285,7 @@ $opcache = OpCacheService::init($options);
         #counts > div > div > p span.large { color: #6ca6ef; font-size: 80pt; margin: 0; padding: 0; text-align: center; }
         #info { margin-right: 280px; }
         #frmFilter { width: 520px; }
+        #fileCacheOnly { margin-top: 0; }
         .moreinfo > div { padding: 10px; }
         .moreinfo > div > p { margin: 0; line-height: 1.75em; }
         .metainfo { font-size: 80%; }
@@ -344,13 +336,13 @@ $opcache = OpCacheService::init($options);
         <ul>
             <li><a data-for="overview" href="#overview" class="active">Overview</a></li>
             <?php if ($opcache->getOption('allow_filelist')): ?>
-            <li><a data-for="files" href="#files">File usage</a></li>
+                <li><a data-for="files" href="#files">File usage</a></li>
             <?php endif; ?>
             <?php if ($opcache->getOption('allow_reset')): ?>
-            <li><a href="?reset=1" id="resetCache" onclick="return confirm('Are you sure you want to reset the cache?');">Reset cache</a></li>
+                <li><a href="?reset=1" id="resetCache" onclick="return confirm('Are you sure you want to reset the cache?');">Reset cache</a></li>
             <?php endif; ?>
             <?php if ($opcache->getOption('allow_realtime')): ?>
-            <li><a href="#" id="toggleRealtime">Enable real-time update</a></li>
+                <li><a href="#" id="toggleRealtime">Enable real-time update</a></li>
             <?php endif; ?>
         </ul>
     </nav>
@@ -366,12 +358,12 @@ $opcache = OpCacheService::init($options);
                 <div id="functions">
                     <table>
                         <thead>
-                            <tr><th>Available functions</th></tr>
+                        <tr><th>Available functions</th></tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($opcache->getData('functions') as $func): ?>
+                        <?php foreach ($opcache->getData('functions') as $func): ?>
                             <tr><td><a href="http://php.net/<?php echo $func; ?>" title="View manual page" target="_blank"><?php echo $func; ?></a></td></tr>
-                            <?php endforeach; ?>
+                        <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
@@ -381,10 +373,10 @@ $opcache = OpCacheService::init($options);
     </div>
     <div id="files">
         <?php if ($opcache->getOption('allow_filelist')): ?>
-        <form action="#">
-            <label for="frmFilter">Start typing to filter on script path</label><br>
-            <input type="text" name="filter" id="frmFilter">
-        </form>
+            <form action="#">
+                <label for="frmFilter">Start typing to filter on script path</label><br>
+                <input type="text" name="filter" id="frmFilter">
+            </form>
         <?php endif; ?>
         <div class="container" id="filelist"></div>
     </div>
@@ -482,7 +474,6 @@ $opcache = OpCacheService::init($options);
         };
     }
     <?php endif; ?>
-
     $(function(){
         <?php if ($opcache->getOption('allow_realtime')): ?>
         function setCookie() {
@@ -558,7 +549,6 @@ $opcache = OpCacheService::init($options);
         });
         $('#frmFilter').bind('keyup', debounce(keyUp, <?php echo $opcache->getOption('debounce_rate'); ?>));
     });
-
     var MemoryUsageGraph = React.createClass({
         getInitialState: function () {
             return {
@@ -596,7 +586,6 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var HitRateGraph = React.createClass({
         getInitialState: function () {
             return {
@@ -634,7 +623,6 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var MemoryUsagePanel = React.createClass({
         render: function () {
             return React.createElement(
@@ -699,7 +687,6 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var StatisticsPanel = React.createClass({
         render: function () {
             return React.createElement(
@@ -783,7 +770,6 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var InternedStringsPanel = React.createClass({
         render: function () {
             return React.createElement(
@@ -845,7 +831,6 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var OverviewCounts = React.createClass({
         getInitialState: function () {
             return {
@@ -854,6 +839,25 @@ $opcache = OpCacheService::init($options);
             };
         },
         render: function () {
+            if (this.state.data == false) {
+                return React.createElement(
+                    "p",
+                    { id: "fileCacheOnly" },
+                    "You have ",
+                    React.createElement(
+                        "i",
+                        null,
+                        "opcache.file_cache_only"
+                    ),
+                    " turned on.  As a result, the memory information is not available.  Statistics and file list may also not be returned by ",
+                    React.createElement(
+                        "i",
+                        null,
+                        "opcache_get_statistics()"
+                    ),
+                    "."
+                );
+            }
             var interned = this.state.data.readable.interned != null ? React.createElement(InternedStringsPanel, {
                 buffer_size: this.state.data.readable.interned.buffer_size,
                 strings_used_memory: this.state.data.readable.interned.strings_used_memory,
@@ -910,16 +914,43 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var GeneralInfo = React.createClass({
         getInitialState: function () {
             return {
                 version: opstate.version,
-                start: opstate.overview.readable.start_time,
-                reset: opstate.overview.readable.last_restart_time
+                start: opstate.overview ? opstate.overview.readable.start_time : null,
+                reset: opstate.overview ? opstate.overview.readable.last_restart_time : null
             };
         },
         render: function () {
+            var startTime = this.state.start ? React.createElement(
+                "tr",
+                null,
+                React.createElement(
+                    "td",
+                    null,
+                    "Start time"
+                ),
+                React.createElement(
+                    "td",
+                    null,
+                    this.state.start
+                )
+            ) : '';
+            var lastReset = this.state.reset ? React.createElement(
+                "tr",
+                null,
+                React.createElement(
+                    "td",
+                    null,
+                    "Last reset"
+                ),
+                React.createElement(
+                    "td",
+                    null,
+                    this.state.reset
+                )
+            ) : '';
             return React.createElement(
                 "table",
                 null,
@@ -995,39 +1026,12 @@ $opcache = OpCacheService::init($options);
                             this.state.version.server
                         )
                     ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "Start time"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            this.state.start
-                        )
-                    ),
-                    React.createElement(
-                        "tr",
-                        null,
-                        React.createElement(
-                            "td",
-                            null,
-                            "Last reset"
-                        ),
-                        React.createElement(
-                            "td",
-                            null,
-                            this.state.reset
-                        )
-                    )
+                    startTime,
+                    lastReset
                 )
             );
         }
     });
-
     var Directives = React.createClass({
         getInitialState: function () {
             return { data: opstate.directives };
@@ -1089,7 +1093,6 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var Files = React.createClass({
         getInitialState: function () {
             return {
@@ -1127,7 +1130,7 @@ $opcache = OpCacheService::init($options);
                         invalidate = React.createElement(
                             "span",
                             null,
-                            ", ",
+                            ",\xA0",
                             React.createElement(
                                 "a",
                                 { className: "metainfo", href: '?invalidate=' + file.full_path, "data-file": file.full_path, onClick: this.handleInvalidate },
@@ -1189,7 +1192,6 @@ $opcache = OpCacheService::init($options);
             }
         }
     });
-
     var FilesMeta = React.createClass({
         render: function () {
             return React.createElement(
@@ -1230,12 +1232,11 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var FilesListed = React.createClass({
         getInitialState: function () {
             return {
-                formatted: opstate.overview.readable.num_cached_scripts,
-                total: opstate.overview.num_cached_scripts
+                formatted: opstate.overview ? opstate.overview.readable.num_cached_scripts : 0,
+                total: opstate.overview ? opstate.overview.num_cached_scripts : 0
             };
         },
         render: function () {
@@ -1250,7 +1251,6 @@ $opcache = OpCacheService::init($options);
             );
         }
     });
-
     var overviewCountsObj = ReactDOM.render(React.createElement(OverviewCounts, null), document.getElementById('counts'));
     var generalInfoObj = ReactDOM.render(React.createElement(GeneralInfo, null), document.getElementById('generalInfo'));
     var filesObj = ReactDOM.render(React.createElement(Files, null), document.getElementById('filelist'));
