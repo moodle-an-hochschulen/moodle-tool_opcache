@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v3.7-r1
 
 * 2019-08-12 - Update OPCache GUI to version 2.4.1 from upstream.
 * 2019-08-05 - Added behat tests.
