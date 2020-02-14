@@ -26,7 +26,7 @@ php:
 
 env:
  global:
-  - MOODLE_BRANCH=MOODLE_37_STABLE
+  - MOODLE_BRANCH=MOODLE_38_STABLE
  matrix:
   - DB=pgsql
 # - DB=mysqli - MySQL is disabled because this plugin does not need a database at all.
