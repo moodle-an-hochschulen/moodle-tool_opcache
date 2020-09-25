@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v3.8-r2
 
 * 2020-09-25 - Add MIT license text to OPCache GUI library directory
 * 2020-09-25 - Update OPCache GUI to version 2.5.4 from upstream - Thanks to Andrew Collington
