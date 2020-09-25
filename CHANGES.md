@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2020-09-25 - Prepare compatibility for Moodle 3.9.
+
 ### v3.8-r2
 
 * 2020-09-25 - Add MIT license text to OPCache GUI library directory
