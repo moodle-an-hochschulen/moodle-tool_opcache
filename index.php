@@ -30,7 +30,8 @@ admin_externalpage_setup('tool_opcache');
 
 // Now: Distinguish the two possible request modes of opcache-gui.
 // Request mode: Real-time update AJAX request.
-if (optional_param('_', 0, PARAM_INT)) {
+// This request mode is identified in exactly the same way as opcache-gui does it itself.
+if (!empty($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
     // Include Opcache just for returning the AJAX request like it would work when Opcache GUI is called standalone.
     require_once(__DIR__ . '/lib/opcache-gui/index.php.inc');
 
@@ -38,6 +39,7 @@ if (optional_param('_', 0, PARAM_INT)) {
 } else {
     // Page setup.
     $title = get_string('pluginname', 'tool_opcache');
+    $PAGE->set_url('/admin/tool/opcache/index.php');
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
 

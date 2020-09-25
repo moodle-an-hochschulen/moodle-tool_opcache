@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2020-09-25 - Update OPCache GUI to version 3.0.0 from upstream.
 * 2020-09-25 - Prepare compatibility for Moodle 3.9.
 
 ### v3.8-r2
