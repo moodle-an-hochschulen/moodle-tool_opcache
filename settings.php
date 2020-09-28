@@ -27,6 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 if ($hassiteconfig) {
     // Add the plugin's main page to the server settings category.
     $settingspage = new admin_externalpage('tool_opcache', new lang_string('pluginname', 'tool_opcache'),
-                                           new moodle_url('/admin/tool/opcache/index.php'), 'moodle/site:config');
+                                           new moodle_url('/'.$CFG->admin.'/tool/opcache/index.php'), 'moodle/site:config');
     $ADMIN->add('server', $settingspage);
 }
