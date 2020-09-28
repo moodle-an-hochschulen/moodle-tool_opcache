@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v3.9-r2
 
 * 2020-09-28 - Remove hardcoded admin directory in paths.
 
