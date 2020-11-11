@@ -1,7 +1,7 @@
 moodle-tool_opcache
 ===================
 
-[![Build Status](https://travis-ci.org/moodleuulm/moodle-tool_opcache.svg?branch=master)](https://travis-ci.org/moodleuulm/moodle-tool_opcache)
+[![Build Status](https://travis-ci.com/moodleuulm/moodle-tool_opcache.svg?branch=master)](https://travis-ci.com/moodleuulm/moodle-tool_opcache)
 
 Moodle plugin which adds a PHP Opcache management GUI to Moodle site administration, a CLI tool to reset PHP Opcache and a Nagios check for PHP Opcache.
 
