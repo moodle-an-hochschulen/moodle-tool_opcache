@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2020-12-07 - Update OPCache GUI to version 3.1.0 (codebase as of 28 november 2020) from upstream.
 * 2020-11-26 - Update OPCache GUI to version 3.0.1 (codebase as of 30 september 2020) from upstream.
 
 ### v3.9-r2
