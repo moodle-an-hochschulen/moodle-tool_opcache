@@ -69,6 +69,12 @@ There is a potential for sensitive data leak, not personal data but data about t
 Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) or take any other measure that this file can not be accessed directly by a browser.
 
 
+Privacy note
+------------
+
+The Opcache-GUI which is used within this plugin is using several JavaScript libraries from the unpkg.com CDN. This is important to note as Moodle core strives to be as CDN-free as possible normally. As a result, you will have to accept that your browser will fetch the JavaScript libraries from the CDN and during this request at least your IP address will be exposed to the CDN. However, this just applies to the admin tool page on Site administration -> Server -> Opcache management, nothing more and nothing less.
+
+
 CLI tool
 --------
 
