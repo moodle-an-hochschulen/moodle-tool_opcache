@@ -53,6 +53,12 @@ How this plugin works
 This plugin works in a really simple way. It adds an admin tool page to Moodle's site administration tree and restricts access to this admin tool page to Moodle administrators (and other users having the moodle/site:config capability). Opcache-GUI is shipped as a library file with this plugin and is just included on the admin tool page.
 
 
+Browser support
+---------------
+
+The Opcache-GUI which is used within this plugin is using ES6 Javascript code. In contrast to Moodle core, this JavaScript code is not transpiled to ES5 in any way. As a result, this plugin does not necessarily run in all legacy browsers which Moodle core still supports. However, this requirement just applies to the admin tool page on Site administration -> Server -> Opcache management, nothing more and nothing less.
+
+
 Security note
 -------------
 
