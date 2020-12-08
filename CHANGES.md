@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v3.9-r3
 
 * 2020-12-07 - Add a note about privacy and CDNs to README.md
 * 2020-12-07 - Add a note about browser support to README.md
