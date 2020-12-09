@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2020-12-08 - Improvement: Declare which major stable version of Moodle this plugin supports (see MDL-59562 for details).
 * 2020-12-08 - Update OPCache GUI to version 3.2.0 (codebase as of 08 december 2020) from upstream.
 
 ### v3.9-r3
