@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2020-12-08 - Update OPCache GUI to version 3.2.0 (codebase as of 08 december 2020) from upstream.
+
 ### v3.9-r3
 
 * 2020-12-07 - Add a note about privacy and CDNs to README.md
