@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v3.10-r1
 
 * 2020-12-09 - Prepare compatibility for Moodle 3.10.
 * 2020-12-08 - Change in Moodle release support:
