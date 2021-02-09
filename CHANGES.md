@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2021-02-05 - Move Moodle Plugin CI from Travis CI to Github actions
+
 ### v3.10-r1
 
 * 2020-12-09 - Prepare compatibility for Moodle 3.10.
