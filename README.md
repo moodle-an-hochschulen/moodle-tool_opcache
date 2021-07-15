@@ -9,7 +9,7 @@ Moodle plugin which adds a PHP Opcache management GUI to Moodle site administrat
 Requirements
 ------------
 
-This plugin requires Moodle 3.10+
+This plugin requires Moodle 3.11+
 
 
 Motivation for this plugin
@@ -17,9 +17,9 @@ Motivation for this plugin
 
 For performance reasons, Moodle should always be run with the Opcache PHP extension enabled. Unfortunately, PHP Opcache is kind of a black box and doesn't provide a management interface by default.
 
-Luckily, there are some free Opcache management GUIs out there with Opcache-GUI by Andrew Collington (https://github.com/amnuts/opcache-gui) being the best-looking one. As a Moodle server administrator, can just throw Opcache-GUI's single index.php file somewhere onto your Moodle server and get a Opcache management GUI instantly. However, this approach requires that you protect the Opcache-GUI from unauthorized access manually in your webserver and comes with the downside that Opcache-GUI is located outside Moodle.
+Luckily, there are some free Opcache management GUIs out there with Opcache-GUI by Andrew Collington (https://github.com/amnuts/opcache-gui) being the best-looking one. As a Moodle server administrator, you can just throw Opcache-GUI's single index.php file somewhere onto your Moodle server and get a Opcache management GUI instantly. However, this approach requires that you protect the Opcache-GUI from unauthorized access manually in your webserver and comes with the downside that Opcache-GUI is located outside Moodle.
 
-For these reasons, we have packaged Opcache-GUI as a very simple Moodle admin tool providing it within Moodle site adminstration for Moodle administrators only.
+For these reasons, we have packaged Opcache-GUI as a very simple Moodle admin tool providing it within Moodle site administration for Moodle administrators only.
 
 As a companion feature to the Opcache-GUI which is used by Moodle administrators in the browser, we added a simple CLI tool to reset PHP Opcache from the command line.
 
@@ -82,7 +82,7 @@ The CLI tool for PHP Opcache is found in the cli subdirectory of the plugin dire
 
 ### cli/reset_opcache_web.php
 
-This file has to be run within the PHP webserver environment and is thus shipped within this plugin. Its only purpose is to reset PHP Opcache within the PHP webserver enviromnent instead of the PHP CLI environment.
+This file has to be run within the PHP webserver environment and is thus shipped within this plugin. Its only purpose is to reset PHP Opcache within the PHP webserver environment instead of the PHP CLI environment.
 
 ### cli/reset_opcache.php
 
