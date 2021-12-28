@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2021-07-15 - Upgrade OPcache GUI to version 3.3.0 (codebase as of 15 july 2021).
 * 2021-07-15 - Prepare compatibility for Moodle 3.11.
 * 2021-02-05 - Move Moodle Plugin CI from Travis CI to Github actions
 
