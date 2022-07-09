@@ -1,7 +1,7 @@
 moodle-tool_opcache
 ===================
 
-[![Moodle Plugin CI](https://github.com/moodleuulm/moodle-tool_opcache/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/moodleuulm/moodle-tool_opcache/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
+[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-tool_opcache/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/moodle-an-hochschulen/moodle-tool_opcache/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
 
 Moodle plugin which adds a PHP Opcache management GUI to Moodle site administration, a CLI tool to reset PHP Opcache and a Nagios check for PHP Opcache.
 
@@ -169,7 +169,7 @@ This plugin is published and regularly updated in the Moodle plugins repository:
 http://moodle.org/plugins/view/tool_opcache
 
 The latest development version can be found on Github:
-https://github.com/moodleuulm/moodle-tool_opcache
+https://github.com/moodle-an-hochschulen/moodle-tool_opcache
 
 
 Bug and problem reports / Support requests
@@ -178,7 +178,7 @@ Bug and problem reports / Support requests
 This plugin is carefully developed and thoroughly tested, but bugs and problems can always appear.
 
 Please report bugs and problems on Github:
-https://github.com/moodleuulm/moodle-tool_opcache/issues
+https://github.com/moodle-an-hochschulen/moodle-tool_opcache/issues
 
 We will do our best to solve your problems, but please note that due to limited resources we can't always provide per-case support.
 
@@ -189,10 +189,10 @@ Feature proposals
 Due to limited resources, the functionality of this plugin is primarily implemented for our own local needs and published as-is to the community. We are aware that members of the community will have other needs and would love to see them solved by this plugin.
 
 Please issue feature proposals on Github:
-https://github.com/moodleuulm/moodle-tool_opcache/issues
+https://github.com/moodle-an-hochschulen/moodle-tool_opcache/issues
 
 Please create pull requests on Github:
-https://github.com/moodleuulm/moodle-tool_opcache/pulls
+https://github.com/moodle-an-hochschulen/moodle-tool_opcache/pulls
 
 We are always interested to read about your feature proposals or even get a pull request from you, but please accept that we can handle your issues only as feature _proposals_ and not as feature _requests_.
 
@@ -224,26 +224,31 @@ This plugin has not been tested with Moodle's support for right-to-left (RTL) la
 If you want to use this plugin with a RTL language and it doesn't work as-is, you are free to send us a pull request on Github with modifications.
 
 
-PHP7 Support
-------------
-
-Since Moodle 3.4 core, PHP7 is mandatory. We are developing and testing this plugin for PHP7 only.
-
-
 Maintainers
 -----------
 
-Ulm University\
-Communication and Information Centre (kiz)\
-Alexander Bias
+The plugin is maintained by\
+Moodle an Hochschulen e.V.
 
 
 Copyright
 ---------
 
+The copyright of this plugin is held by\
+Moodle an Hochschulen e.V.
+
+Individual copyrights of individual developers are tracked in PHPDoc comments and Git commits.
+
+
+Initial copyright
+-----------------
+
+This plugin was initially built, maintained and published by\
 Ulm University\
 Communication and Information Centre (kiz)\
 Alexander Bias
+
+It was contributed to the Moodle an Hochschulen e.V. plugin catalogue in 2022.
 
 
 Credits
