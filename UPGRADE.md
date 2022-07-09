@@ -1,0 +1,30 @@
+Upgrading this plugin
+=====================
+
+This is an internal documentation for plugin developers with some notes what has to be considered when updating this plugin to a new Moodle major version.
+
+General
+-------
+
+* Generally, this is a quite simple plugin with just one purpose.
+* It does not rely on any fluctuating library functions and should remain quite stable between Moodle major versions.
+* Thus, the upgrading effort is low.
+
+
+Upstream changes
+----------------
+
+* This plugin relies on the thiry-party Opcache-GUI tool which is located within the plugin directory. This tool is under active development and has to be updated within the plugin every now and then.
+
+
+Automated tests
+---------------
+
+* The plugin has a good coverage with Behat tests which test all of the plugin's user stories.
+
+
+Manual tests
+------------
+
+* There aren't any manual tests needed to upgrade this plugin.
+* However, it might be advisable to have a look at the admin page of the plugin in the Moodle GUI as Moodle themes or the Opcache-GUI itself can always change small details in this area.
