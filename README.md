@@ -47,6 +47,12 @@ Opcache-GUI should be self-explanatory for experienced PHP administrators.
 For additional documentation about the usage of Opcache-GUI, please refer to the Opcache-GUI documentation on https://github.com/amnuts/opcache-gui/blob/MOODLE_310_STABLE/README.md.
 
 
+Capabilities
+------------
+
+This plugin does not add any additional capabilities.
+
+
 How this plugin works
 ---------------------
 
