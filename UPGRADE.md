@@ -27,4 +27,9 @@ Manual tests
 ------------
 
 * There aren't any manual tests needed to upgrade this plugin.
-* However, it might be advisable to have a look at the admin page of the plugin in the Moodle GUI as Moodle themes or the Opcache-GUI itself can always change small details in this area.
+
+
+Visual checks
+-------------
+
+* It might be advisable to have a look at the admin page of the plugin in the Moodle GUI as Moodle themes or the Opcache-GUI itself can always change small details in this area.
