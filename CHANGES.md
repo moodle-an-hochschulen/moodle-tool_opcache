@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2022-07-10 - Add Capabilities section to README.md
+
 ### v3.11-r2
 
 * 2022-06-26 - Make codechecker happy again
