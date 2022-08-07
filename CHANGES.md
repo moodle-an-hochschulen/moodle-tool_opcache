@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2022-07-12 - Prepare compatibility for Moodle 4.0.
+
 ### v3.11-r4
 
 * 2022-08-07 - Upgrade OPcache GUI to version 3.4.0
