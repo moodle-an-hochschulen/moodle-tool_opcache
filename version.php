@@ -25,8 +25,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'tool_opcache';
-$plugin->version = 2021051703;
-$plugin->release = 'v3.11-r4';
+$plugin->version = 2022071200;
+$plugin->release = 'v4.0-r1';
 $plugin->requires = 2022041900;
 $plugin->supported = [400, 400];
 $plugin->maturity = MATURITY_STABLE;
