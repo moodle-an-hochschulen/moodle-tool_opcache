@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v3.11-r4
 
 * 2022-08-07 - Upgrade OPcache GUI to version 3.4.0
 
