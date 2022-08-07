@@ -4,7 +4,7 @@
     <location>lib/opcache-gui</location>
     <name>Opcache GUI</name>
     <license>MIT</license>
-    <version>3.2.0</version>
+    <version>3.4.0</version>
     <licenseversion></licenseversion>
   </library>
 </libraries>
