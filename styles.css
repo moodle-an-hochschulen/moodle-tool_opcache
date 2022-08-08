@@ -1,0 +1,4 @@
+/* Get rid of second vertical scrollbar around OPcache GUI */
+#region-main-box #interface.opcache-gui {
+    overflow-y: hidden;
+}
