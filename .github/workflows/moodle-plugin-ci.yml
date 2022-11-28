@@ -4,11 +4,11 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-22.04
 
     services:
       postgres:
-        image: postgres:10
+        image: postgres:12
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_HOST_AUTH_METHOD: 'trust'
@@ -19,13 +19,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['7.3', '7.4']
+        php: ['7.3', '7.4', '8.0']
         moodle-branch: ['MOODLE_400_STABLE']
         database: [pgsql]
 
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: plugin
 
@@ -96,4 +96,4 @@ jobs:
 
       - name: Behat features
         if: ${{ always() }}
-        run: moodle-plugin-ci behat --profile chrome
+        run: moodle-plugin-ci behat --profile chrome --auto-rerun 0

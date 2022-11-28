@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2022-11-28 - Updated Moodle Plugin CI to latest upstream recommendations
+
 ### v4.0-r2
 
 * 2022-08-08 - Improvement: Get rid of second vertical scrollbar around OPcache GUI
