@@ -69,10 +69,10 @@ $curl = new curl(array('ignoresecurity' => true)); // The ignoresecurity option 
                                                    // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
                                                    // that the web part of this CLI tool is fetched.
 $curloptions = array(
-        'FRESH_CONNECT'  => true,
+        'FRESH_CONNECT' => true,
         'RETURNTRANSFER' => true,
-        'FORBID_REUSE'   => true,
-        'HEADER'         => false,
+        'FORBID_REUSE' => true,
+        'HEADER' => false,
         'CONNECTTIMEOUT' => 5,
 );
 $params = array();
