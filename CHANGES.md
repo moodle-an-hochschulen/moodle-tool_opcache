@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v3.9-r8
 
 * 2023-04-25 - Upgrade OPcache GUI to a CDN-less edition of version 3.4.0
 * 2023-03-11 - Make codechecker happy again
