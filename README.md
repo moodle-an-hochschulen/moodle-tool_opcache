@@ -44,7 +44,7 @@ To use the plugin, please visit:
 Site administration -> Server -> Opcache management.
 
 Opcache-GUI should be self-explanatory for experienced PHP administrators.
-For additional documentation about the usage of Opcache-GUI, please refer to the Opcache-GUI documentation on https://github.com/amnuts/opcache-gui/blob/MOODLE_400_STABLE/README.md.
+For additional documentation about the usage of Opcache-GUI, please refer to the Opcache-GUI documentation on https://github.com/amnuts/opcache-gui/blob/master/README.md.
 
 
 Capabilities
