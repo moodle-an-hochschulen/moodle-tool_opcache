@@ -508,9 +508,9 @@ $opcache = (new Service($options))->handle();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>OPcache statistics on <?= $opcache->getData('version', 'host'); ?></title>
-    <script src="//unpkg.com/react/umd/react.production.min.js"></script>
-    <script src="//unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
-    <script src="//unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="lib/opcache-gui/react.production.min.js"></script>
+    <script src="lib/opcache-gui/react-dom.production.min.js"></script>
+    <script src="lib/opcache-gui/axios.min.js"></script>
     <style>
         :root{--opcache-gui-graph-track-fill-color: #6CA6EF;--opcache-gui-graph-track-background-color: rgba(229,231,231,0.905882)}.opcache-gui{font-family:sans-serif;font-size:90%;padding:0;margin:0}.opcache-gui .hide{display:none}.opcache-gui .sr-only{border:0 !important;clip:rect(1px, 1px, 1px, 1px) !important;-webkit-clip-path:inset(50%) !important;clip-path:inset(50%) !important;height:1px !important;margin:-1px !important;overflow:hidden !important;padding:0 !important;position:absolute !important;width:1px !important;white-space:nowrap !important}.opcache-gui .main-nav{padding-top:20px}.opcache-gui .nav-tab-list{list-style-type:none;padding-left:8px;margin:0;border-bottom:1px solid #CCC}.opcache-gui .nav-tab{display:inline-block;margin:0 0 -1px 0;padding:15px 30px;border:1px solid transparent;border-bottom-color:#CCC;text-decoration:none;background-color:#fff;cursor:pointer;user-select:none}.opcache-gui .nav-tab:hover{background-color:#F4F4F4;text-decoration:underline}.opcache-gui .nav-tab.active{border:1px solid #CCC;border-bottom-color:#fff;border-top:3px solid #6CA6EF}.opcache-gui .nav-tab.active:hover{background-color:initial}.opcache-gui .nav-tab:focus{outline:0;text-decoration:underline}.opcache-gui .nav-tab-link-reset{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="rgb(98, 98, 98)"/></svg>')}.opcache-gui .nav-tab-link-reset.is-resetting{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="rgb(0, 186, 0)"/></svg>')}.opcache-gui .nav-tab-link-realtime{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8z" fill="rgb(98, 98, 98)"/><path d="M12.5 7H11v6l5.25 3.15l.75-1.23l-4.5-2.67z" fill="rgb(98, 98, 98)"/></svg>')}.opcache-gui .nav-tab-link-realtime.live-update{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1.5em" height="1.5em" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8s8 3.58 8 8s-3.58 8-8 8z" fill="rgb(0, 186, 0)"/><path d="M12.5 7H11v6l5.25 3.15l.75-1.23l-4.5-2.67z" fill="rgb(0, 186, 0)"/></svg>')}.opcache-gui .nav-tab-link-reset,.opcache-gui .nav-tab-link-realtime{position:relative;padding-left:50px}.opcache-gui .nav-tab-link-reset.pulse::before,.opcache-gui .nav-tab-link-realtime.pulse::before{content:"";position:absolute;top:12px;left:25px;width:18px;height:18px;z-index:10;opacity:0;background-color:transparent;border:2px solid #00ba00;border-radius:100%;animation:pulse 2s linear infinite}.opcache-gui .tab-content{padding:2em}.opcache-gui .tab-content-overview-counts{width:270px;float:right}.opcache-gui .tab-content-overview-info{margin-right:280px}.opcache-gui .graph-widget{max-width:100%;height:auto;margin:0 auto;display:flex;position:relative}.opcache-gui .graph-widget .widget-value{display:flex;align-items:center;justify-content:center;text-align:center;position:absolute;top:0;width:100%;height:100%;margin:0 auto;font-size:3.2em;font-weight:100;color:#6CA6EF;user-select:none}.opcache-gui .widget-panel{background-color:#EDEDED;margin-bottom:10px}.opcache-gui .widget-header{background-color:#CDCDCD;padding:4px 6px;margin:0;text-align:center;font-size:1rem;font-weight:bold}.opcache-gui .widget-value{margin:0;text-align:center}.opcache-gui .widget-value span.large{color:#6CA6EF;font-size:80pt;margin:0;padding:0;text-align:center}.opcache-gui .widget-value span.large+span{font-size:20pt;margin:0;color:#6CA6EF}.opcache-gui .widget-info{margin:0;padding:10px}.opcache-gui .widget-info *{margin:0;line-height:1.75em;text-align:left}.opcache-gui .tables{margin:0 0 1em 0;border-collapse:collapse;width:100%;table-layout:fixed}.opcache-gui .tables tr:nth-child(odd){background-color:#EFFEFF}.opcache-gui .tables tr:nth-child(even){background-color:#E0ECEF}.opcache-gui .tables th{text-align:left;padding:6px;background-color:#6CA6EF;color:#fff;border-color:#fff;font-weight:normal}.opcache-gui .tables td{padding:4px 6px;line-height:1.4em;vertical-align:top;border-color:#fff;overflow:hidden;overflow-wrap:break-word;text-overflow:ellipsis}.opcache-gui .directive-list{list-style-type:none;padding:0;margin:0}.opcache-gui .directive-list li{margin-bottom:0.5em}.opcache-gui .directive-list li:last-child{margin-bottom:0}.opcache-gui .directive-list li ul{margin-top:1.5em}.opcache-gui .file-filter{width:520px}.opcache-gui .file-metainfo{font-size:80%}.opcache-gui .file-metainfo.invalid{font-style:italic}.opcache-gui .file-pathname{width:70%;display:block}.opcache-gui .nav-tab-link-reset,.opcache-gui .nav-tab-link-realtime,.opcache-gui .github-link{background-repeat:no-repeat;background-color:transparent}.opcache-gui .nav-tab-link-reset,.opcache-gui .nav-tab-link-realtime{background-position:24px 50%}.opcache-gui .github-link{background-position:5px 50%}.opcache-gui .main-footer{border-top:1px solid #CCC;padding:1em 2em}.opcache-gui .github-link{background-position:0 50%;padding:2em 0 2em 2.3em;text-decoration:none;opacity:0.7;background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" focusable="false" width="1.19em" height="1em" viewBox="0 0 1664 1408"><path d="M640 960q0 40-12.5 82t-43 76t-72.5 34t-72.5-34t-43-76t-12.5-82t12.5-82t43-76t72.5-34t72.5 34t43 76t12.5 82zm640 0q0 40-12.5 82t-43 76t-72.5 34t-72.5-34t-43-76t-12.5-82t12.5-82t43-76t72.5-34t72.5 34t43 76t12.5 82zm160 0q0-120-69-204t-187-84q-41 0-195 21q-71 11-157 11t-157-11q-152-21-195-21q-118 0-187 84t-69 204q0 88 32 153.5t81 103t122 60t140 29.5t149 7h168q82 0 149-7t140-29.5t122-60t81-103t32-153.5zm224-176q0 207-61 331q-38 77-105.5 133t-141 86t-170 47.5t-171.5 22t-167 4.5q-78 0-142-3t-147.5-12.5t-152.5-30t-137-51.5t-121-81t-86-115Q0 992 0 784q0-237 136-396q-27-82-27-170q0-116 51-218q108 0 190 39.5T539 163q147-35 309-35q148 0 280 32q105-82 187-121t189-39q51 102 51 218q0 87-27 168q136 160 136 398z" fill="rgb(98, 98, 98)"/></svg>');font-size:80%}.opcache-gui .github-link:hover{opacity:1}.opcache-gui .file-cache-only{margin-top:0}.opcache-gui .paginate-filter{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap}.opcache-gui .paginate-filter .filter>*{padding:3px;margin:3px 3px 10px 0}.opcache-gui .pagination{margin:10px 0;padding:0}.opcache-gui .pagination li{display:inline-block}.opcache-gui .pagination li a{display:inline-flex;align-items:center;white-space:nowrap;line-height:1;padding:0.5rem 0.75rem;border-radius:3px;text-decoration:none;height:100%}.opcache-gui .pagination li a.arrow{font-size:1.1rem}.opcache-gui .pagination li a:active{transform:translateY(2px)}.opcache-gui .pagination li a.active{background-color:#4d75af;color:#fff}.opcache-gui .pagination li a:hover:not(.active){background-color:#FF7400;color:#fff}@media screen and (max-width: 750px){.opcache-gui .nav-tab-list{border-bottom:0}.opcache-gui .nav-tab{display:block;margin:0}.opcache-gui .nav-tab-link{display:block;margin:0 10px;padding:10px 0 10px 30px;border:0}.opcache-gui .nav-tab-link[data-for].active{border-bottom-color:#CCC}.opcache-gui .tab-content-overview-info{margin-right:auto;clear:both}.opcache-gui .tab-content-overview-counts{position:relative;display:block;width:100%}}@media screen and (max-width: 550px){.opcache-gui .file-filter{width:100%}}@keyframes pulse{0%{transform:scale(1);opacity:1}50%,100%{transform:scale(2);opacity:0}}
     </style>
@@ -522,14 +522,13 @@ $opcache = (new Service($options))->handle();
 
     <script type="text/javascript">
 
-    function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
+    function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
+function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
 class Interface extends React.Component {
   constructor(props) {
     super(props);
-
     _defineProperty(this, "startTimer", () => {
       this.setState({
         realtime: true
@@ -548,7 +547,6 @@ class Interface extends React.Component {
         });
       }, this.props.realtimeRefresh * 1000);
     });
-
     _defineProperty(this, "stopTimer", () => {
       this.setState({
         realtime: false,
@@ -556,10 +554,8 @@ class Interface extends React.Component {
       });
       clearInterval(this.polling);
     });
-
     _defineProperty(this, "realtimeHandler", () => {
       const realtime = !this.state.realtime;
-
       if (!realtime) {
         this.stopTimer();
         this.removeCookie();
@@ -568,7 +564,6 @@ class Interface extends React.Component {
         this.setCookie();
       }
     });
-
     _defineProperty(this, "resetHandler", () => {
       if (this.state.realtime) {
         this.setState({
@@ -585,33 +580,27 @@ class Interface extends React.Component {
         window.location.href = '?reset=1';
       }
     });
-
     _defineProperty(this, "setCookie", () => {
       let d = new Date();
       d.setTime(d.getTime() + this.props.cookie.ttl * 86400000);
       document.cookie = `${this.props.cookie.name}=true;expires=${d.toUTCString()};path=/${this.isSecure ? ';secure' : ''}`;
     });
-
     _defineProperty(this, "removeCookie", () => {
       document.cookie = `${this.props.cookie.name}=;expires=Thu, 01 Jan 1970 00:00:01 GMT;path=/${this.isSecure ? ';secure' : ''}`;
     });
-
     _defineProperty(this, "getCookie", () => {
       const v = document.cookie.match(`(^|;) ?${this.props.cookie.name}=([^;]*)(;|$)`);
       return v ? !!v[2] : false;
     });
-
     _defineProperty(this, "txt", (text, ...args) => {
       if (this.props.language !== null && this.props.language.hasOwnProperty(text) && this.props.language[text]) {
         text = this.props.language[text];
       }
-
       args.forEach((arg, i) => {
         text = text.replaceAll(`{${i}}`, arg);
       });
       return text;
     });
-
     this.state = {
       realtime: this.getCookie(),
       resetting: false,
@@ -619,12 +608,10 @@ class Interface extends React.Component {
     };
     this.polling = false;
     this.isSecure = window.location.protocol === 'https:';
-
     if (this.getCookie()) {
       this.startTimer();
     }
   }
-
   render() {
     const {
       opstate,
@@ -642,9 +629,7 @@ class Interface extends React.Component {
       version: this.props.opstate.version.gui
     }));
   }
-
 }
-
 function MainNavigation(props) {
   return /*#__PURE__*/React.createElement("nav", {
     className: "main-nav"
@@ -722,22 +707,18 @@ function MainNavigation(props) {
     tabIndex: 6
   })));
 }
-
 class Tabs extends React.Component {
   constructor(props) {
     super(props);
-
     _defineProperty(this, "onClickTabItem", tab => {
       this.setState({
         activeTab: tab
       });
     });
-
     this.state = {
       activeTab: this.props.children[0].props.label
     };
   }
-
   render() {
     const {
       onClickTabItem,
@@ -775,13 +756,10 @@ class Tabs extends React.Component {
       id: `${child.props.tabId}-content`
     }, child.props.children))));
   }
-
 }
-
 class Tab extends React.Component {
   constructor(...args) {
     super(...args);
-
     _defineProperty(this, "onClick", () => {
       const {
         label,
@@ -790,7 +768,6 @@ class Tab extends React.Component {
       onClick(label);
     });
   }
-
   render() {
     const {
       onClick,
@@ -802,15 +779,12 @@ class Tab extends React.Component {
       }
     } = this;
     let className = 'nav-tab';
-
     if (this.props.className) {
       className += ` ${this.props.className}`;
     }
-
     if (activeTab === label) {
       className += ' active';
     }
-
     return /*#__PURE__*/React.createElement("li", {
       className: className,
       onClick: onClick,
@@ -819,16 +793,13 @@ class Tab extends React.Component {
       "aria-controls": `${tabId}-content`
     }, label);
   }
-
 }
-
 function OverviewCounts(props) {
   if (props.overview === false) {
     return /*#__PURE__*/React.createElement("p", {
       class: "file-cache-only"
     }, props.txt(`You have <i>opcache.file_cache_only</i> turned on.  As a result, the memory information is not available.  Statistics and file list may also not be returned by <i>opcache_get_statistics()</i>.`));
   }
-
   const graphList = [{
     id: 'memoryUsageCanvas',
     title: props.txt('memory'),
@@ -857,7 +828,6 @@ function OverviewCounts(props) {
     if (!graph.show) {
       return null;
     }
-
     return /*#__PURE__*/React.createElement("div", {
       className: "widget-panel",
       key: graph.id
@@ -895,7 +865,6 @@ function OverviewCounts(props) {
     txt: props.txt
   }));
 }
-
 function GeneralInfo(props) {
   return /*#__PURE__*/React.createElement("table", {
     className: "tables general-info-table"
@@ -903,7 +872,6 @@ function GeneralInfo(props) {
     colSpan: "2"
   }, props.txt('General info')))), /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Zend OPcache"), /*#__PURE__*/React.createElement("td", null, props.version.version)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "PHP"), /*#__PURE__*/React.createElement("td", null, props.version.php)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Host')), /*#__PURE__*/React.createElement("td", null, props.version.host)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Server Software')), /*#__PURE__*/React.createElement("td", null, props.version.server)), props.start ? /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Start time')), /*#__PURE__*/React.createElement("td", null, props.start)) : null, props.reset ? /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Last reset')), /*#__PURE__*/React.createElement("td", null, props.reset)) : null));
 }
-
 function Directives(props) {
   let directiveList = directive => {
     return /*#__PURE__*/React.createElement("ul", {
@@ -918,7 +886,6 @@ function Directives(props) {
       }, item);
     }));
   };
-
   let directiveNodes = props.directives.map(function (directive) {
     let map = {
       'opcache.': '',
@@ -928,7 +895,6 @@ function Directives(props) {
       return map[matched];
     });
     let vShow;
-
     if (directive.v === true || directive.v === false) {
       vShow = React.createElement('i', {}, props.txt(directive.v.toString()));
     } else if (directive.v === '') {
@@ -940,7 +906,6 @@ function Directives(props) {
         vShow = directive.v;
       }
     }
-
     return /*#__PURE__*/React.createElement("tr", {
       key: directive.k
     }, /*#__PURE__*/React.createElement("td", {
@@ -956,7 +921,6 @@ function Directives(props) {
     colSpan: "2"
   }, props.txt('Directives')))), /*#__PURE__*/React.createElement("tbody", null, directiveNodes));
 }
-
 function Functions(props) {
   return /*#__PURE__*/React.createElement("div", {
     id: "functions"
@@ -970,7 +934,6 @@ function Functions(props) {
     target: "_blank"
   }, f)))))));
 }
-
 function UsageGraph(props) {
   const percentage = Math.round(3.6 * props.value / 360 * 100);
   return props.charts ? /*#__PURE__*/React.createElement(ReactCustomizableProgressbar, {
@@ -987,22 +950,19 @@ function UsageGraph(props) {
     className: "large"
   }, percentage), /*#__PURE__*/React.createElement("span", null, "%"));
 }
+
 /**
  * This component is from <https://github.com/martyan/react-customizable-progressbar/>
  * MIT License (MIT), Copyright (c) 2019 Martin Juzl
  */
-
-
 class ReactCustomizableProgressbar extends React.Component {
   constructor(props) {
     super(props);
-
     _defineProperty(this, "initAnimation", () => {
       this.setState({
         animationInited: true
       });
     });
-
     _defineProperty(this, "getProgress", () => {
       const {
         initialAnimation,
@@ -1013,7 +973,6 @@ class ReactCustomizableProgressbar extends React.Component {
       } = this.state;
       return initialAnimation && !animationInited ? 0 : progress;
     });
-
     _defineProperty(this, "getStrokeDashoffset", strokeLength => {
       const {
         counterClockwise,
@@ -1025,7 +984,6 @@ class ReactCustomizableProgressbar extends React.Component {
       if (inverse) return counterClockwise ? 0 : progressLength - strokeLength;
       return counterClockwise ? -1 * progressLength : progressLength;
     });
-
     _defineProperty(this, "getStrokeDashArray", (strokeLength, circumference) => {
       const {
         counterClockwise,
@@ -1037,7 +995,6 @@ class ReactCustomizableProgressbar extends React.Component {
       if (inverse) return `${progressLength}, ${circumference}`;
       return counterClockwise ? `${strokeLength * (progress / 100)}, ${circumference}` : `${strokeLength}, ${circumference}`;
     });
-
     _defineProperty(this, "getTrackStrokeDashArray", (strokeLength, circumference) => {
       const {
         initialAnimation
@@ -1048,7 +1005,6 @@ class ReactCustomizableProgressbar extends React.Component {
       if (initialAnimation && !animationInited) return `0, ${circumference}`;
       return `${strokeLength}, ${circumference}`;
     });
-
     _defineProperty(this, "getExtendedWidth", () => {
       const {
         strokeWidth,
@@ -1059,7 +1015,6 @@ class ReactCustomizableProgressbar extends React.Component {
       const pointerWidth = pointerRadius + pointerStrokeWidth;
       if (pointerWidth > strokeWidth && pointerWidth > trackStrokeWidth) return pointerWidth * 2;else if (strokeWidth > trackStrokeWidth) return strokeWidth * 2;else return trackStrokeWidth * 2;
     });
-
     _defineProperty(this, "getPointerAngle", () => {
       const {
         cut,
@@ -1069,12 +1024,10 @@ class ReactCustomizableProgressbar extends React.Component {
       const progress = this.getProgress();
       return counterClockwise ? (360 - cut) / steps * (steps - progress) : (360 - cut) / steps * progress;
     });
-
     this.state = {
       animationInited: false
     };
   }
-
   componentDidMount() {
     const {
       initialAnimation,
@@ -1082,7 +1035,6 @@ class ReactCustomizableProgressbar extends React.Component {
     } = this.props;
     if (initialAnimation) setTimeout(this.initAnimation, initialAnimationDelay);
   }
-
   render() {
     const {
       radius,
@@ -1162,9 +1114,7 @@ class ReactCustomizableProgressbar extends React.Component {
       className: `widget-value`
     }, progress, "%"));
   }
-
 }
-
 ReactCustomizableProgressbar.defaultProps = {
   radius: 100,
   progress: 0,
@@ -1189,7 +1139,6 @@ ReactCustomizableProgressbar.defaultProps = {
   initialAnimation: false,
   initialAnimationDelay: 0
 };
-
 function MemoryUsagePanel(props) {
   return /*#__PURE__*/React.createElement("div", {
     className: "widget-panel"
@@ -1199,7 +1148,6 @@ function MemoryUsagePanel(props) {
     className: "widget-value widget-info"
   }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('total memory'), ":"), " ", props.total), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('used memory'), ":"), " ", props.used), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('free memory'), ":"), " ", props.free), props.preload && /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('preload memory'), ":"), " ", props.preload), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('wasted memory'), ":"), " ", props.wasted, " (", props.wastedPercent, "%)"), props.jitBuffer && /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('jit buffer'), ":"), " ", props.jitBuffer), props.jitBufferFree && /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('jit buffer free'), ":"), " ", props.jitBufferFree, " (", 100 - props.jitBufferFreePercentage, "%)")));
 }
-
 function StatisticsPanel(props) {
   return /*#__PURE__*/React.createElement("div", {
     className: "widget-panel"
@@ -1209,7 +1157,6 @@ function StatisticsPanel(props) {
     className: "widget-value widget-info"
   }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('number of cached'), " files:"), " ", props.num_cached_scripts), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('number of hits'), ":"), " ", props.hits), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('number of misses'), ":"), " ", props.misses), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('blacklist misses'), ":"), " ", props.blacklist_miss), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('number of cached keys'), ":"), " ", props.num_cached_keys), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('max cached keys'), ":"), " ", props.max_cached_keys)));
 }
-
 function InternedStringsPanel(props) {
   return /*#__PURE__*/React.createElement("div", {
     className: "widget-panel"
@@ -1219,27 +1166,22 @@ function InternedStringsPanel(props) {
     className: "widget-value widget-info"
   }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('buffer size'), ":"), " ", props.buffer_size), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('used memory'), ":"), " ", props.strings_used_memory), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('free memory'), ":"), " ", props.strings_free_memory), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, props.txt('number of strings'), ":"), " ", props.number_of_strings)));
 }
-
 class CachedFiles extends React.Component {
   constructor(props) {
     super(props);
-
     _defineProperty(this, "setSearchTerm", debounce(searchTerm => {
       this.setState({
         searchTerm,
         refreshPagination: !this.state.refreshPagination
       });
     }, this.props.debounceRate));
-
     _defineProperty(this, "onPageChanged", currentPage => {
       this.setState({
         currentPage
       });
     });
-
     _defineProperty(this, "handleInvalidate", e => {
       e.preventDefault();
-
       if (this.props.realtime) {
         axios.get(window.location.pathname, {
           params: {
@@ -1252,33 +1194,27 @@ class CachedFiles extends React.Component {
         window.location.href = e.currentTarget.href;
       }
     });
-
     _defineProperty(this, "changeSort", e => {
       this.setState({
         [e.target.name]: e.target.value
       });
     });
-
     _defineProperty(this, "compareValues", (key, order = 'asc') => {
       return function innerSort(a, b) {
         if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) {
           return 0;
         }
-
         const varA = typeof a[key] === 'string' ? a[key].toUpperCase() : a[key];
         const varB = typeof b[key] === 'string' ? b[key].toUpperCase() : b[key];
         let comparison = 0;
-
         if (varA > varB) {
           comparison = 1;
         } else if (varA < varB) {
           comparison = -1;
         }
-
         return order === 'desc' ? comparison * -1 : comparison;
       };
     });
-
     this.doPagination = typeof props.perPageLimit === "number" && props.perPageLimit > 0;
     this.state = {
       currentPage: 1,
@@ -1288,16 +1224,13 @@ class CachedFiles extends React.Component {
       sortDir: `desc`
     };
   }
-
   render() {
     if (!this.props.allow.fileList) {
       return null;
     }
-
     if (this.props.allFiles.length === 0) {
       return /*#__PURE__*/React.createElement("p", null, this.props.txt('No files have been cached or you have <i>opcache.file_cache_only</i> turned on'));
     }
-
     const {
       searchTerm,
       currentPage
@@ -1371,16 +1304,12 @@ class CachedFiles extends React.Component {
       }, file));
     }))));
   }
-
 }
-
 class CachedFile extends React.Component {
   constructor(...args) {
     super(...args);
-
     _defineProperty(this, "handleInvalidate", e => {
       e.preventDefault();
-
       if (this.props.realtime) {
         axios.get(window.location.pathname, {
           params: {
@@ -1394,7 +1323,6 @@ class CachedFile extends React.Component {
       }
     });
   }
-
   render() {
     return /*#__PURE__*/React.createElement("tr", {
       "data-path": this.props.full_path.toLowerCase()
@@ -1411,35 +1339,28 @@ class CachedFile extends React.Component {
       onClick: this.handleInvalidate
     }, this.props.txt('force file invalidation')))));
   }
-
 }
-
 class IgnoredFiles extends React.Component {
   constructor(props) {
     super(props);
-
     _defineProperty(this, "onPageChanged", currentPage => {
       this.setState({
         currentPage
       });
     });
-
     this.doPagination = typeof props.perPageLimit === "number" && props.perPageLimit > 0;
     this.state = {
       currentPage: 1,
       refreshPagination: 0
     };
   }
-
   render() {
     if (!this.props.allow.fileList) {
       return null;
     }
-
     if (this.props.allFiles.length === 0) {
       return /*#__PURE__*/React.createElement("p", null, this.props.txt('No files have been ignored via <i>opcache.blacklist_filename</i>'));
     }
-
     const {
       currentPage
     } = this.state;
@@ -1461,35 +1382,28 @@ class IgnoredFiles extends React.Component {
       }, /*#__PURE__*/React.createElement("td", null, file));
     }))));
   }
-
 }
-
 class PreloadedFiles extends React.Component {
   constructor(props) {
     super(props);
-
     _defineProperty(this, "onPageChanged", currentPage => {
       this.setState({
         currentPage
       });
     });
-
     this.doPagination = typeof props.perPageLimit === "number" && props.perPageLimit > 0;
     this.state = {
       currentPage: 1,
       refreshPagination: 0
     };
   }
-
   render() {
     if (!this.props.allow.fileList) {
       return null;
     }
-
     if (this.props.allFiles.length === 0) {
       return /*#__PURE__*/React.createElement("p", null, this.props.txt('No files have been preloaded <i>opcache.preload</i>'));
     }
-
     const {
       currentPage
     } = this.state;
@@ -1511,13 +1425,10 @@ class PreloadedFiles extends React.Component {
       }, /*#__PURE__*/React.createElement("td", null, file));
     }))));
   }
-
 }
-
 class Pagination extends React.Component {
   constructor(props) {
     super(props);
-
     _defineProperty(this, "gotoPage", page => {
       const {
         onPageChanged = f => f
@@ -1527,54 +1438,43 @@ class Pagination extends React.Component {
         currentPage
       }, () => onPageChanged(currentPage));
     });
-
     _defineProperty(this, "totalPages", () => {
       return Math.ceil(this.props.totalRecords / this.props.pageLimit);
     });
-
     _defineProperty(this, "handleClick", (page, evt) => {
       evt.preventDefault();
       this.gotoPage(page);
     });
-
     _defineProperty(this, "handleJumpLeft", evt => {
       evt.preventDefault();
       this.gotoPage(this.state.currentPage - this.pageNeighbours * 2 - 1);
     });
-
     _defineProperty(this, "handleJumpRight", evt => {
       evt.preventDefault();
       this.gotoPage(this.state.currentPage + this.pageNeighbours * 2 + 1);
     });
-
     _defineProperty(this, "handleMoveLeft", evt => {
       evt.preventDefault();
       this.gotoPage(this.state.currentPage - 1);
     });
-
     _defineProperty(this, "handleMoveRight", evt => {
       evt.preventDefault();
       this.gotoPage(this.state.currentPage + 1);
     });
-
     _defineProperty(this, "range", (from, to, step = 1) => {
       let i = from;
       const range = [];
-
       while (i <= to) {
         range.push(i);
         i += step;
       }
-
       return range;
     });
-
     _defineProperty(this, "fetchPageNumbers", () => {
       const totalPages = this.totalPages();
       const pageNeighbours = this.pageNeighbours;
       const totalNumbers = this.pageNeighbours * 2 + 3;
       const totalBlocks = totalNumbers + 2;
-
       if (totalPages > totalBlocks) {
         let pages = [];
         const leftBound = this.state.currentPage - pageNeighbours;
@@ -1589,7 +1489,6 @@ class Pagination extends React.Component {
         const rightSpill = endPage < beforeLastPage;
         const leftSpillPage = "LEFT";
         const rightSpillPage = "RIGHT";
-
         if (leftSpill && !rightSpill) {
           const extraPages = this.range(startPage - singleSpillOffset, startPage - 1);
           pages = [leftSpillPage, ...extraPages, ...pages];
@@ -1599,38 +1498,30 @@ class Pagination extends React.Component {
         } else if (leftSpill && rightSpill) {
           pages = [leftSpillPage, ...pages, rightSpillPage];
         }
-
         return [1, ...pages, totalPages];
       }
-
       return this.range(1, totalPages);
     });
-
     this.state = {
       currentPage: 1
     };
     this.pageNeighbours = typeof props.pageNeighbours === "number" ? Math.max(0, Math.min(props.pageNeighbours, 2)) : 0;
   }
-
   componentDidMount() {
     this.gotoPage(1);
   }
-
   componentDidUpdate(props) {
     const {
       refresh
     } = this.props;
-
     if (props.refresh !== refresh) {
       this.gotoPage(1);
     }
   }
-
   render() {
     if (!this.props.totalRecords || this.totalPages() === 1) {
       return null;
     }
-
     const {
       currentPage
     } = this.state;
@@ -1667,7 +1558,6 @@ class Pagination extends React.Component {
           className: "sr-only"
         }, this.props.txt('Previous page')))));
       }
-
       if (page === "RIGHT") {
         return /*#__PURE__*/React.createElement(React.Fragment, {
           key: index
@@ -1695,7 +1585,6 @@ class Pagination extends React.Component {
           className: "sr-only"
         }, this.props.txt('Jump forward')))));
       }
-
       return /*#__PURE__*/React.createElement("li", {
         key: index,
         className: "page-item"
@@ -1706,9 +1595,7 @@ class Pagination extends React.Component {
       }, page));
     })));
   }
-
 }
-
 function Footer(props) {
   return /*#__PURE__*/React.createElement("footer", {
     className: "main-footer"
@@ -1719,26 +1606,21 @@ function Footer(props) {
     title: "opcache-gui (currently version {props.version}) on GitHub"
   }, "https://github.com/amnuts/opcache-gui - version ", props.version));
 }
-
 function debounce(func, wait, immediate) {
   let timeout;
   wait = wait || 250;
   return function () {
     let context = this,
-        args = arguments;
-
+      args = arguments;
     let later = function () {
       timeout = null;
-
       if (!immediate) {
         func.apply(context, args);
       }
     };
-
     let callNow = immediate && !timeout;
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
-
     if (callNow) {
       func.apply(context, args);
     }
