@@ -31,14 +31,14 @@ require_once($CFG->libdir . '/filelib.php');
 
 
 // Get cli options.
-list($options, $unrecognized) = cli_get_params(array('help' => false,
+list($options, $unrecognized) = cli_get_params(['help' => false,
                                                     'url' => null,
                                                     'warning' => 80,
-                                                    'critical' => 90),
-                                               array('h' => 'help',
+                                                    'critical' => 90, ],
+                                               ['h' => 'help',
                                                     'u' => 'url',
                                                     'w' => 'warning',
-                                                    'c' => 'critical'));
+                                                    'c' => 'critical', ]);
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
     cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
@@ -75,17 +75,17 @@ $options['critical'] = clean_param($options['critical'], PARAM_INT);
 
 
 // Fetch Opcache figures from webserver.
-$curl = new curl(array('ignoresecurity' => true)); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
+$curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
                                                    // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
                                                    // that the web part of this CLI tool is fetched.
-$curloptions = array(
+$curloptions = [
     'FRESH_CONNECT' => true,
     'RETURNTRANSFER' => true,
     'FORBID_REUSE' => true,
     'HEADER' => false,
     'CONNECTTIMEOUT' => 5,
-);
-$params = array();
+];
+$params = [];
 if (isset($CFG->tool_opcache_check_secretkey)) {
     $params['secret'] = $CFG->tool_opcache_check_secretkey;
 }

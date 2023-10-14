@@ -32,12 +32,12 @@ global $CFG;
 
 
 // Get cli options.
-list($options, $unrecognized) = cli_get_params(array('help' => false,
+list($options, $unrecognized) = cli_get_params(['help' => false,
                                                     'url' => null,
-                                                    'reset' => false),
-                                               array('h' => 'help',
+                                                    'reset' => false, ],
+                                               ['h' => 'help',
                                                     'u' => 'url',
-                                                    'r' => 'reset'));
+                                                    'r' => 'reset', ]);
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
     cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
@@ -65,17 +65,17 @@ $options['url'] = clean_param($options['url'], PARAM_URL);
 
 
 // Reset opcache on webserver.
-$curl = new curl(array('ignoresecurity' => true)); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
+$curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
                                                    // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
                                                    // that the web part of this CLI tool is fetched.
-$curloptions = array(
+$curloptions = [
         'FRESH_CONNECT' => true,
         'RETURNTRANSFER' => true,
         'FORBID_REUSE' => true,
         'HEADER' => false,
         'CONNECTTIMEOUT' => 5,
-);
-$params = array();
+];
+$params = [];
 if (isset($CFG->tool_opcache_reset_secretkey)) {
     $params['secret'] = $CFG->tool_opcache_reset_secretkey;
 }
