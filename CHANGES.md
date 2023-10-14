@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2023-10-10 - Updated Moodle Plugin CI to latest upstream recommendations
+
 ### v4.0-r3
 
 * 2023-04-25 - Upgrade OPcache GUI to a CDN-less edition of version 3.4.0
