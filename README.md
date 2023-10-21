@@ -9,7 +9,7 @@ Moodle plugin which adds a PHP Opcache management GUI to Moodle site administrat
 Requirements
 ------------
 
-This plugin requires Moodle 4.2+
+This plugin requires Moodle 4.3+
 
 
 Motivation for this plugin
