@@ -1,7 +1,7 @@
 moodle-tool_opcache
 ===================
 
-[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-tool_opcache/workflows/Moodle%20Plugin%20CI/badge.svg?branch=master)](https://github.com/moodle-an-hochschulen/moodle-tool_opcache/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3Amaster)
+[![Moodle Plugin CI](https://github.com/moodle-an-hochschulen/moodle-tool_opcache/workflows/Moodle%20Plugin%20CI/badge.svg?branch=MOODLE_403_STABLE)](https://github.com/moodle-an-hochschulen/moodle-tool_opcache/actions?query=workflow%3A%22Moodle+Plugin+CI%22+branch%3AMOODLE_403_STABLE)
 
 Moodle plugin which adds a PHP Opcache management GUI to Moodle site administration, a CLI tool to reset PHP Opcache and a Nagios check for PHP Opcache.
 
@@ -44,7 +44,7 @@ To use the plugin, please visit:
 Site administration -> Server -> Opcache management.
 
 Opcache-GUI should be self-explanatory for experienced PHP administrators.
-For additional documentation about the usage of Opcache-GUI, please refer to the Opcache-GUI documentation on https://github.com/amnuts/opcache-gui/blob/master/README.md.
+For additional documentation about the usage of Opcache-GUI, please refer to the Opcache-GUI documentation on https://github.com/amnuts/opcache-gui/blob/MOODLE_403_STABLE/README.md.
 
 
 Capabilities
