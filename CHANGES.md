@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2024-08-11 - Updated Moodle Plugin CI to latest upstream recommendations
 * 2023-10-16 - Upgrade OPcache GUI to a CDN-less edition of version 3.5.2 
 
 ### v4.1-r2
