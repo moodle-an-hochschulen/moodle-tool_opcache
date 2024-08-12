@@ -53,6 +53,12 @@ Capabilities
 This plugin does not add any additional capabilities.
 
 
+Scheduled Tasks
+---------------
+
+This plugin does not add any additional scheduled tasks.
+
+
 How this plugin works
 ---------------------
 
