@@ -23,7 +23,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// @codingStandardsIgnoreFile
+// phpcs:disable
 // Let codechecker ignore this file because otherwise it would complain about a missing MOODLE_INTERNAL check or config.php
 // inclusion which is really not needed.
 
