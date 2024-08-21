@@ -15,8 +15,14 @@ Upstream changes
 ----------------
 
 * This plugin relies on the thiry-party Opcache-GUI tool which is located within the plugin directory. This tool is under active development and has to be updated within the plugin every now and then.
-* Basically, you will just need to take the index.php file from the Opcache-GUI repo on https://github.com/amnuts/opcache-gui and replace the /lib/opcache-gui/index.php.inc file with this new version. 
-* However, as we want to use a CDN-less version of Opcache-GUI, you will have to rebuild the software according to https://github.com/amnuts/opcache-gui#the-javascript.
+* Basically, you would just need to take the index.php file from the Opcache-GUI repo on https://github.com/amnuts/opcache-gui and replace the /lib/opcache-gui/index.php.inc file with this new version.
+* However, as we want to use a CDN-less version of Opcache-GUI, you will have to rebuild the software according to https://github.com/amnuts/opcache-gui#the-javascript. Generally, it works like this:
+```
+  git clone git@github.com:amnuts/opcache-gui.git
+  cd opcache-gui
+  php ./build/build.php --local-js
+  cp index.php <path-to-tool_opcache>/lib/opcache-gui/index.php.inc
+```
 
 
 Automated tests
