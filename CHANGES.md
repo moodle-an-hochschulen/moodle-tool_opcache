@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2024-08-21 - Upgrade OPcache GUI to version 3.5.5
+
 ### v4.2-r2
 
 * 2024-08-11 - Add section for scheduled tasks to README

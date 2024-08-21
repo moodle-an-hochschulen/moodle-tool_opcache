@@ -6,7 +6,7 @@
  * A simple but effective single-file GUI for the OPcache PHP extension.
  *
  * @author Andrew Collington, andy@amnuts.com
- * @version 3.5.2
+ * @version 3.5.5
  * @link https://github.com/amnuts/opcache-gui
  * @license MIT, https://acollington.mit-license.org/
  */
@@ -59,7 +59,7 @@ header('Pragma: no-cache');
 
 class Service
 {
-    public const VERSION = '3.5.2';
+    public const VERSION = '3.5.5';
 
     protected $tz;
     protected $data;
@@ -417,7 +417,7 @@ class Service
             ];
         }
 
-        if ($overview && !empty($status['jit'])) {
+        if ($overview && !empty($status['jit']['enabled'])) {
             $overview['jit_buffer_used_percentage'] = ($status['jit']['buffer_size']
                 ? round(100 * (($status['jit']['buffer_size'] - $status['jit']['buffer_free']) / $status['jit']['buffer_size']))
                 : 0
@@ -488,8 +488,29 @@ class Service
             'preload' => $preload,
             'directives' => $directives,
             'blacklist' => $config['blacklist'],
-            'functions' => get_extension_funcs('Zend OPcache')
+            'functions' => get_extension_funcs('Zend OPcache'),
+            'jitState' => $this->jitState($status, $config['directives']),
         ];
+    }
+
+    protected function jitState(array $status, array $directives): array
+    {
+        $state = [
+            'enabled' => $status['jit']['enabled'],
+            'reason' => ''
+        ];
+
+        if (!$state['enabled']) {
+            if (empty($directives['opcache.jit']) || $directives['opcache.jit'] === 'disable') {
+                $state['reason'] = $this->txt('disabled due to <i>opcache.jit</i> setting');
+            } elseif (!$directives['opcache.jit_buffer_size']) {
+                $state['reason'] = $this->txt('the <i>opcache.jit_buffer_size</i> must be set to fully enable JIT');
+            } else {
+                $state['reason'] = $this->txt('incompatible with extensions that override <i>zend_execute_ex()</i>, such as <i>xdebug</i>');
+            }
+        }
+
+        return $state;
     }
 }
 
@@ -821,10 +842,10 @@ function(a,b,c){if(!Vd(b))throw Error(n(200));return Wd(null,a,b,!1,c)};Q.unmoun
 
     <script type="text/javascript">
 
-    function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
-function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-function _toPropertyKey(arg) { var key = _toPrimitive(arg, "string"); return typeof key === "symbol" ? key : String(key); }
-function _toPrimitive(input, hint) { if (typeof input !== "object" || input === null) return input; var prim = input[Symbol.toPrimitive]; if (prim !== undefined) { var res = prim.call(input, hint || "default"); if (typeof res !== "object") return res; throw new TypeError("@@toPrimitive must return a primitive value."); } return (hint === "string" ? String : Number)(input); }
+    function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
+function _defineProperty(e, r, t) { return (r = _toPropertyKey(r)) in e ? Object.defineProperty(e, r, { value: t, enumerable: !0, configurable: !0, writable: !0 }) : e[r] = t, e; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 class Interface extends React.Component {
   constructor(props) {
     super(props);
@@ -925,7 +946,8 @@ class Interface extends React.Component {
       resetHandler: this.resetHandler,
       txt: this.txt
     }))), /*#__PURE__*/React.createElement(Footer, {
-      version: this.props.opstate.version.gui
+      version: this.props.opstate.version.gui,
+      txt: this.txt
     }));
   }
 }
@@ -948,6 +970,7 @@ function MainNavigation(props) {
     start: props.opstate.overview && props.opstate.overview.readable.start_time || null,
     reset: props.opstate.overview && props.opstate.overview.readable.last_restart_time || null,
     version: props.opstate.version,
+    jit: props.opstate.jitState,
     txt: props.txt
   }), /*#__PURE__*/React.createElement(Directives, {
     directives: props.opstate.directives,
@@ -1169,7 +1192,11 @@ function GeneralInfo(props) {
     className: "tables general-info-table"
   }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
     colSpan: "2"
-  }, props.txt('General info')))), /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Zend OPcache"), /*#__PURE__*/React.createElement("td", null, props.version.version)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "PHP"), /*#__PURE__*/React.createElement("td", null, props.version.php)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Host')), /*#__PURE__*/React.createElement("td", null, props.version.host)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Server Software')), /*#__PURE__*/React.createElement("td", null, props.version.server)), props.start ? /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Start time')), /*#__PURE__*/React.createElement("td", null, props.start)) : null, props.reset ? /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Last reset')), /*#__PURE__*/React.createElement("td", null, props.reset)) : null));
+  }, props.txt('General info')))), /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "Zend OPcache"), /*#__PURE__*/React.createElement("td", null, props.version.version)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, "PHP"), /*#__PURE__*/React.createElement("td", null, props.version.php)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Host')), /*#__PURE__*/React.createElement("td", null, props.version.host)), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Server Software')), /*#__PURE__*/React.createElement("td", null, props.version.server)), props.start ? /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Start time')), /*#__PURE__*/React.createElement("td", null, props.start)) : null, props.reset ? /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('Last reset')), /*#__PURE__*/React.createElement("td", null, props.reset)) : null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, props.txt('JIT enabled')), /*#__PURE__*/React.createElement("td", null, props.txt(props.jit.enabled ? "Yes" : "No"), props.jit.reason && /*#__PURE__*/React.createElement("span", {
+    dangerouslySetInnerHTML: {
+      __html: ` (${props.jit.reason})`
+    }
+  })))));
 }
 function Directives(props) {
   let directiveList = directive => {
@@ -1205,12 +1232,18 @@ function Directives(props) {
         vShow = directive.v;
       }
     }
+    let directiveLink = name => {
+      if (name === 'opcache.jit_max_recursive_returns') {
+        return 'opcache.jit-max-recursive-return';
+      }
+      return ['opcache.file_update_protection', 'opcache.huge_code_pages', 'opcache.lockfile_path', 'opcache.opt_debug_level'].includes(name) ? name : name.replace(/_/g, '-');
+    };
     return /*#__PURE__*/React.createElement("tr", {
       key: directive.k
     }, /*#__PURE__*/React.createElement("td", {
       title: props.txt('View {0} manual entry', directive.k)
     }, /*#__PURE__*/React.createElement("a", {
-      href: 'https://php.net/manual/en/opcache.configuration.php#ini.' + directive.k.replace(/_/g, '-'),
+      href: 'https://php.net/manual/en/opcache.configuration.php#ini.' + directiveLink(directive.k),
       target: "_blank"
     }, dShow)), /*#__PURE__*/React.createElement("td", null, vShow));
   });
@@ -1902,13 +1935,13 @@ function Footer(props) {
     className: "github-link",
     href: "https://github.com/amnuts/opcache-gui",
     target: "_blank",
-    title: "opcache-gui (currently version {props.version}) on GitHub"
-  }, "https://github.com/amnuts/opcache-gui - version ", props.version), /*#__PURE__*/React.createElement("a", {
+    title: props.txt("opcache-gui (currently version {0}) on GitHub", props.version)
+  }, "https://github.com/amnuts/opcache-gui - ", props.txt("version {0}", props.version)), /*#__PURE__*/React.createElement("a", {
     className: "sponsor-link",
     href: "https://github.com/sponsors/amnuts",
     target: "_blank",
-    title: "Sponsor this project and author on GitHub"
-  }, "Sponsor this project"));
+    title: props.txt("Sponsor this project and author on GitHub")
+  }, props.txt("Sponsor this project")));
 }
 function debounce(func, wait, immediate) {
   let timeout;
