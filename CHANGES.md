@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2024-10-14 - Upgrade: Adopt changes from MDL-81920 and use new \core\lang_string class.
 * 2024-10-07 - Prepare compatibility for Moodle 4.5.
 
 ### v4.4-r1
