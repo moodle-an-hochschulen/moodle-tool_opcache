@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v4.5-r1
 
 * 2024-10-14 - Upgrade: Adopt changes from MDL-81960 and use new \core\url class
 * 2024-10-14 - Upgrade: Adopt changes from MDL-81920 and use new \core\lang_string class.
