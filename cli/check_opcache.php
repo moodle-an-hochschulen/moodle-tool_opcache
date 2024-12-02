@@ -32,11 +32,17 @@ require_once($CFG->libdir . '/filelib.php');
 
 // Get cli options.
 list($options, $unrecognized) = cli_get_params(['help' => false,
+						    'verbose' => 0,
+						    'insecure' => 0,
                                                     'url' => null,
+						    'domain' => null,
                                                     'warning' => 80,
                                                     'critical' => 90, ],
                                                ['h' => 'help',
+                                                    'v' => 'verbose',
+                                                    'i' => 'insecure',
                                                     'u' => 'url',
+                                                    'd' => 'domain',
                                                     'w' => 'warning',
                                                     'c' => 'critical', ]);
 if ($unrecognized) {
@@ -55,8 +61,11 @@ if ($options['help'] || !($options['url'])) {
 
 Options:
 -u, --url       Full URL to check_opcache_web.php
+-d, --domain    Domain, useful when it use IP in the URL
 -w, --warning   Threshold for warning (Default: 80)
 -c, --critical  Threshold for critical (Default: 90)
+-i, --insecure  When true, sets the SSL_VERIFYPEER and SSL_VERIFYHOST options to false
+-v, --verbose   Verbose
 -h, --help      Print out this help
 
 Example:
@@ -72,6 +81,8 @@ Example:
 $options['url'] = clean_param($options['url'], PARAM_URL);
 $options['warning'] = clean_param($options['warning'], PARAM_INT);
 $options['critical'] = clean_param($options['critical'], PARAM_INT);
+$options['insecure'] = clean_param($options['insecure'], PARAM_BOOL);
+$options['verbose'] = clean_param($options['verbose'], PARAM_BOOL);
 
 
 // Fetch Opcache figures from webserver.
@@ -79,11 +90,15 @@ $curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means
                                                    // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
                                                    // that the web part of this CLI tool is fetched.
 $curloptions = [
+    'VERBOSE' => $options['verbose'],
     'FRESH_CONNECT' => true,
     'RETURNTRANSFER' => true,
     'FORBID_REUSE' => true,
     'HEADER' => false,
     'CONNECTTIMEOUT' => 5,
+    'HTTPHEADER' => array("Host: ".$options['domain']),
+    'SSL_VERIFYPEER' => ($options['insecure'] ? 0:1),
+    'SSL_VERIFYHOST' => ($options['insecure'] ? 0:1)
 ];
 $params = [];
 if (isset($CFG->tool_opcache_check_secretkey)) {
