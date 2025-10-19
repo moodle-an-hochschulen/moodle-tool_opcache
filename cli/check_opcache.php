@@ -25,20 +25,23 @@
 
 define('CLI_SCRIPT', true);
 
-require(__DIR__.'/../../../../config.php');
-require_once($CFG->libdir.'/clilib.php');
+require(__DIR__ . '/../../../../config.php');
+require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/filelib.php');
 
 
 // Get cli options.
-list($options, $unrecognized) = cli_get_params(['help' => false,
+[$options, $unrecognized] = cli_get_params(
+    ['help' => false,
                                                     'url' => null,
                                                     'warning' => 80,
                                                     'critical' => 90, ],
-                                               ['h' => 'help',
+    ['h' => 'help',
                                                     'u' => 'url',
                                                     'w' => 'warning',
-                                                    'c' => 'critical', ]);
+    'c' => 'critical',
+    ]
+);
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
     cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
@@ -60,7 +63,7 @@ Options:
 -h, --help      Print out this help
 
 Example:
-\$ sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php ".
+\$ sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php " .
         "--url=\"https://example.com/admin/tool/opcache/cli/check_opcache_web.php\" --warning=75 --critical=85
 ";
     cli_writeln($help);
@@ -117,16 +120,17 @@ if ($usedpct >= $options['critical']) {
 }
 
 // Concatenate return string including performance data.
-$out = $usedpct."% cache used | ".
-        "used_pct=".$usedpct."%;".$options['warning'].";".$options['critical']." hit_pct=".$hitspct."%; miss_pct=".$misspct."%;";
+$out = $usedpct . "% cache used | " .
+        "used_pct=" . $usedpct . "%;" . $options['warning'] . ";" . $options['critical'] . " hit_pct=" . $hitspct .
+                "%; miss_pct=" . $misspct . "%;";
 
 // Echo return string.
 if ($returnstatus == 0) {
-    cli_writeln('OK - '.$out);
+    cli_writeln('OK - ' . $out);
 } else if ($returnstatus == 1) {
-    cli_writeln('WARNING - '.$out);
+    cli_writeln('WARNING - ' . $out);
 } else {
-    cli_writeln('CRITICAL - '.$out);
+    cli_writeln('CRITICAL - ' . $out);
 }
 
 // Exit with calculated return status.
