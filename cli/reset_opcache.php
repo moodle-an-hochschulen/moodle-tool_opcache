@@ -24,20 +24,23 @@
 
 define('CLI_SCRIPT', true);
 
-require(__DIR__.'/../../../../config.php');
-require_once($CFG->libdir.'/clilib.php');
+require(__DIR__ . '/../../../../config.php');
+require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/filelib.php');
 
 global $CFG;
 
 
 // Get cli options.
-list($options, $unrecognized) = cli_get_params(['help' => false,
+[$options, $unrecognized] = cli_get_params(
+    ['help' => false,
                                                     'url' => null,
                                                     'reset' => false, ],
-                                               ['h' => 'help',
+    ['h' => 'help',
                                                     'u' => 'url',
-                                                    'r' => 'reset', ]);
+    'r' => 'reset',
+    ]
+);
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
     cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
