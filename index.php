@@ -23,7 +23,7 @@
  */
 
 require(__DIR__ . '/../../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->libdir . '/adminlib.php');
 
 // Set up the plugin's main page as external admin page.
 admin_externalpage_setup('tool_opcache');
@@ -39,7 +39,7 @@ if (!empty($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'applica
 } else {
     // Page setup.
     $title = get_string('pluginname', 'tool_opcache');
-    $PAGE->set_url('/'.$CFG->admin.'/tool/opcache/index.php');
+    $PAGE->set_url('/' . $CFG->admin . '/tool/opcache/index.php');
     $PAGE->set_title($title);
     $PAGE->set_heading($title);
 
