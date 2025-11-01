@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v5.1-r1
 
 * 2025-10-26 - Prepare compatibility for Moodle 5.1.
 
