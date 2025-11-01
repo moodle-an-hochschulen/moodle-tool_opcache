@@ -4,9 +4,13 @@ moodle-tool_opcache
 Changes
 -------
 
+### v5.0-r4
+
+* 2025-10-31 - Upgrade OPcache GUI to version 3.6.0
+
 ### v5.0-r3
 
-* 2025-10-31 - Upgrade OPcache GUI to version 3.5.5
+* 2025-10-31 - Withdrawn (just because of a flaw in CHANGES.md)
 
 ### v5.0-r2
 
