@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2025-10-31 - Upgrade OPcache GUI to version 3.5.5
+
 ### v5.0-r2
 
 * 2025-10-15 - Make codechecker happy again
