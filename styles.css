@@ -2,3 +2,46 @@
 #region-main-box #interface.opcache-gui {
     overflow-y: hidden;
 }
+
+/* Adapt the light-only colours of OPcache GUI to the Boost dark colour mode.
+   OPcache GUI sets fixed light background colours but lets the text colour follow the page,
+   so we have to re-point these backgrounds (and borders) to the colour mode aware Bootstrap properties.
+   These changes could be removed as soon as https://github.com/amnuts/opcache-gui/issues/107 is done. */
+/* The graph track colour is read by OPcache GUI's JavaScript from the document element. */
+:root[data-bs-theme="dark"] {
+    --opcache-gui-graph-track-background-color: #495057;
+}
+[data-bs-theme="dark"] .opcache-gui .nav-tab-list,
+[data-bs-theme="dark"] .opcache-gui .main-footer {
+    border-color: var(--bs-border-color);
+}
+[data-bs-theme="dark"] .opcache-gui .nav-tab {
+    background-color: var(--bs-body-bg);
+    border-bottom-color: var(--bs-border-color);
+}
+[data-bs-theme="dark"] .opcache-gui .nav-tab:hover {
+    background-color: var(--bs-tertiary-bg);
+}
+[data-bs-theme="dark"] .opcache-gui .nav-tab.active {
+    border-color: var(--bs-border-color);
+    border-bottom-color: var(--bs-body-bg);
+    border-top-color: #6ca6ef;
+}
+[data-bs-theme="dark"] .opcache-gui .nav-tab-link[data-for].active {
+    border-bottom-color: var(--bs-border-color);
+}
+[data-bs-theme="dark"] .opcache-gui .widget-panel {
+    background-color: var(--bs-tertiary-bg);
+}
+[data-bs-theme="dark"] .opcache-gui .widget-header {
+    background-color: var(--bs-secondary-bg);
+}
+[data-bs-theme="dark"] .opcache-gui .tables tr:nth-child(odd) {
+    background-color: var(--bs-tertiary-bg);
+}
+[data-bs-theme="dark"] .opcache-gui .tables tr:nth-child(even) {
+    background-color: var(--bs-secondary-bg);
+}
+[data-bs-theme="dark"] .opcache-gui .tables td {
+    border-color: var(--bs-body-bg);
+}
