@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v5.3-r1
 
 * 2026-10-20 - Upgrade: Adapt the OPcache GUI colours to the Boost dark colour mode.
 * 2026-10-05 - Prepare compatibility for Moodle 5.3.
