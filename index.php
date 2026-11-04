@@ -24,9 +24,17 @@
 
 require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot . '/' . $CFG->admin . '/tool/opcache/locallib.php');
 
 // Set up the plugin's main page as external admin page.
 admin_externalpage_setup('tool_opcache');
+
+// If a write operation of the Opcache GUI is requested, make sure that the request is not forged.
+// The Opcache GUI does not have any CSRF protection itself and it reads the write operation parameters from $_GET only.
+// This check has to be done before the Opcache GUI is included as the Opcache GUI performs the write operations directly.
+if (tool_opcache_is_write_request($_GET)) {
+    require_sesskey();
+}
 
 // Now: Distinguish the two possible request modes of opcache-gui.
 // Request mode: Real-time update AJAX request.
@@ -50,7 +58,18 @@ if (!empty($_SERVER['HTTP_ACCEPT']) && stripos($_SERVER['HTTP_ACCEPT'], 'applica
     echo $OUTPUT->header();
 
     // Include Opcache GUI.
+    // Its output is buffered separately because we want to modify it.
+    // If the Opcache GUI performs a write operation, it redirects itself to its main view and does not return here.
+    ob_start();
     require_once(__DIR__ . '/lib/opcache-gui/index.php.inc');
+    $opcacheguioutput = ob_get_clean();
+
+    // Protect the write operations of the Opcache GUI with the sesskey.
+    $opcacheguioutput = tool_opcache_add_sesskey_to_write_links($opcacheguioutput);
+    $opcacheguioutput = tool_opcache_add_sesskey_to_write_requests($opcacheguioutput);
+
+    // Output the Opcache GUI.
+    echo $opcacheguioutput;
 
     // Page setup.
     echo $OUTPUT->footer();
