@@ -4,6 +4,10 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-03 - Improvement: Protect the write operations of the Opcache GUI (resetting the cache and invalidating files) against cross-site request forgery with a sesskey check, including PHPUnit and Behat tests.
+
 ### v5.3-r1
 
 * 2026-10-20 - Upgrade: Adapt the OPcache GUI colours to the Boost dark colour mode.
