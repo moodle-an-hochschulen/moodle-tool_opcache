@@ -27,16 +27,15 @@
 // inclusion which is really not needed.
 
 require(__DIR__.'/../../../../config.php');
+require_once(__DIR__.'/../locallib.php');
 
-global $CFG, $PAGE;
-
-// Die if resetting opcache is not actively enabled.
-if (!isset($CFG->tool_opcache_reset_secretkey)) {
+// Die if resetting opcache is not enabled.
+if (!tool_opcache_is_cli_tool_enabled('reset')) {
     echo 1;
     exit;
 
     // And die if the submitted secret key is not correct.
-} else if ($CFG->tool_opcache_reset_secretkey != clean_param($PAGE->url->get_param('secret'), PARAM_ALPHANUM)) {
+} else if (!tool_opcache_check_secretkey('reset', optional_param('secret', '', PARAM_ALPHANUM))) {
     echo 2;
     exit;
 }

@@ -28,6 +28,7 @@ define('CLI_SCRIPT', true);
 require(__DIR__ . '/../../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/filelib.php');
+require_once(__DIR__ . '/../locallib.php');
 
 
 // Get cli options.
@@ -71,6 +72,13 @@ Example:
 }
 
 
+// Die if the Nagios check is not enabled.
+if (!tool_opcache_is_cli_tool_enabled('check')) {
+    cli_writeln('UNKNOWN - The Nagios check is not enabled in config.php. See README.md for details.');
+    exit($returnstatus);
+}
+
+
 // Clean CLI parameters.
 $options['url'] = clean_param($options['url'], PARAM_URL);
 $options['warning'] = clean_param($options['warning'], PARAM_INT);
@@ -88,16 +96,19 @@ $curloptions = [
     'HEADER' => false,
     'CONNECTTIMEOUT' => 5,
 ];
-$params = [];
-if (isset($CFG->tool_opcache_check_secretkey)) {
-    $params['secret'] = $CFG->tool_opcache_check_secretkey;
-}
+$params = ['secret' => tool_opcache_get_secretkey('check', true)];
 $curlret = $curl->get($options['url'], $params, $curloptions);
 
-// Die if secret key was required but not correct (basically, this should not happen).
+// Die if the Nagios check is not enabled on the webserver (basically, this should not happen).
+if ($curlret == 'DISABLED') {
+    cli_writeln('UNKNOWN - The Nagios check is not enabled on the webserver. See README.md for details.');
+    exit($returnstatus);
+}
+
+// Die if the secret key is not correct (basically, this should not happen).
 if ($curlret == 'FORBIDDEN') {
-    $returnstatus = 2;
-    $out = 'Secret key is required but is not correct.';
+    cli_writeln('CRITICAL - Secret key is required but is not correct.');
+    exit(2);
 }
 
 // Pick Opcache figures.
