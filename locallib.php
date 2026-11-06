@@ -186,7 +186,7 @@ function tool_opcache_get_secretkey($tool, $generate = false) {
 
     // If there isn't any secret key yet and if requested, generate and store a secret key.
     // The secret key is alphanumeric as the web part cleans the submitted secret key with PARAM_ALPHANUM.
-    if ($secretkey === '' && $generate == true) {
+    if ($secretkey === '' && $generate) {
         $secretkey = random_string(64);
         set_config($tool . 'secretkey', $secretkey, 'tool_opcache');
     }
