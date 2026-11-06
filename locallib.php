@@ -118,3 +118,101 @@ function tool_opcache_add_sesskey_to_write_requests($output) {
 
     return substr_replace($output, $script, $pos, 0);
 }
+
+/**
+ * Helper function to get the secret key which is set for the given CLI tool in config.php.
+ *
+ * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
+ *
+ * @return string The secret key or an empty string if no secret key is set in config.php.
+ */
+function tool_opcache_get_cfg_secretkey($tool) {
+    global $CFG;
+
+    // Get the secret key from config.php.
+    $setting = 'tool_opcache_' . $tool . '_secretkey';
+    if (!isset($CFG->$setting) || !is_scalar($CFG->$setting)) {
+        return '';
+    }
+
+    return (string) $CFG->$setting;
+}
+
+/**
+ * Helper function to check if the given CLI tool is enabled in config.php.
+ *
+ * The CLI tools are disabled by default. They are enabled with a setting in config.php.
+ * For backwards compatibility, they are also enabled if a secret key is set in config.php.
+ *
+ * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
+ *
+ * @return bool
+ */
+function tool_opcache_is_cli_tool_enabled($tool) {
+    global $CFG;
+
+    // Check if the CLI tool is enabled explicitly in config.php.
+    // Any truthy value like true or 1 enables the CLI tool.
+    // The setting is read from $CFG->config_php_settings and not from $CFG directly to make sure that the CLI tool can only
+    // be enabled in config.php and not by a setting with the same name in the Moodle database.
+    $setting = 'tool_opcache_' . $tool . '_enabled';
+    if (!empty($CFG->config_php_settings[$setting])) {
+        return true;
+    }
+
+    // Check if the CLI tool is enabled implicitly by a secret key in config.php.
+    return tool_opcache_get_cfg_secretkey($tool) !== '';
+}
+
+/**
+ * Helper function to get the secret key which is used by the given CLI tool to call its web part.
+ *
+ * If a secret key is set in config.php, this secret key is used.
+ * Otherwise, the secret key which has been generated automatically and which is stored in the plugin config is used.
+ *
+ * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
+ * @param bool $generate Generate and store a secret key if there isn't any secret key yet.
+ *                       This should only be done by the CLI part of the CLI tool and not by the web part which can be called
+ *                       by anybody.
+ *
+ * @return string The secret key or an empty string if there isn't any secret key (yet).
+ */
+function tool_opcache_get_secretkey($tool, $generate = false) {
+    // If a secret key is set in config.php, use it.
+    $secretkey = tool_opcache_get_cfg_secretkey($tool);
+    if ($secretkey !== '') {
+        return $secretkey;
+    }
+
+    // Otherwise, get the secret key from the plugin config.
+    $secretkey = (string) get_config('tool_opcache', $tool . 'secretkey');
+
+    // If there isn't any secret key yet and if requested, generate and store a secret key.
+    // The secret key is alphanumeric as the web part cleans the submitted secret key with PARAM_ALPHANUM.
+    if ($secretkey === '' && $generate == true) {
+        $secretkey = random_string(64);
+        set_config($tool . 'secretkey', $secretkey, 'tool_opcache');
+    }
+
+    return $secretkey;
+}
+
+/**
+ * Helper function to check if the given submitted secret key matches the secret key of the given CLI tool.
+ *
+ * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
+ * @param string $submittedsecretkey The submitted secret key.
+ *
+ * @return bool
+ */
+function tool_opcache_check_secretkey($tool, $submittedsecretkey) {
+    // If there isn't any secret key, no submitted secret key can match.
+    $secretkey = tool_opcache_get_secretkey($tool);
+    if ($secretkey === '') {
+        return false;
+    }
+
+    // Compare the secret keys with hash_equals() as it compares the strings in constant time and as it does not compare
+    // numeric strings as numbers (as '!=' does, where '1e3' would match '1000').
+    return hash_equals($secretkey, (string) $submittedsecretkey);
+}
