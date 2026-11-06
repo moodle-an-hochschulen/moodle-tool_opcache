@@ -40,8 +40,15 @@ if (!tool_opcache_is_cli_tool_enabled('reset')) {
     exit;
 }
 
+// Die if the Opcache extension is not loaded on the webserver.
+if (!function_exists('opcache_reset')) {
+    echo 3;
+    exit;
+}
+
 // Reset opcache.
-$retval = opcache_reset();
+// This fails if Opcache is disabled or if the API access is restricted on the webserver.
+$retval = @opcache_reset();
 
 // Echo exit status.
 if ($retval == true) {
