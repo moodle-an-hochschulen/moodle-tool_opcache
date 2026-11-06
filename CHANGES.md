@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-06 - Improvement: Let the web parts of the Nagios check and the CLI tool to reset PHP opcache run without a Moodle session (NO_MOODLE_COOKIES). Until now, each call of a web part created a new Moodle session as its CLI part does not send any cookies.
 * 2026-11-06 - Improvement: Let the web part of the Nagios check fetch the Opcache status without the list of all cached scripts as only the memory and statistics figures are needed. This reduces the load of each Nagios check on webservers with many cached scripts.
 * 2026-11-06 - Bugfix: Fix the paths and the quoting of the example calls of the CLI tools in README.md and in the CLI help output and add the missing parameters to the example call in the help output of the CLI tool to reset PHP opcache.
 * 2026-11-06 - Bugfix: Let the web parts of the Nagios check and the CLI tool to reset PHP opcache return a proper response instead of throwing PHP warnings and errors if Opcache is not available on the webserver (extension not loaded, Opcache disabled or API access restricted) or if Opcache has not counted any requests yet. The Nagios check reports an unavailable Opcache as UNKNOWN, the CLI tool to reset PHP opcache reports a missing Opcache extension with a dedicated error message. The evaluation of the response of the web part has been moved to a helper function, including PHPUnit tests.
