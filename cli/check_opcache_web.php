@@ -42,8 +42,19 @@ if (!tool_opcache_check_secretkey('check', optional_param('secret', '', PARAM_AL
     exit;
 }
 
+// Die if the Opcache extension is not loaded on the webserver.
+if (!function_exists('opcache_get_status')) {
+    echo 'UNAVAILABLE';
+    exit;
+}
+
 // Get Opcache status.
-$opcache = opcache_get_status();
+// Die if Opcache is disabled or if the API access is restricted on the webserver.
+$opcache = @opcache_get_status();
+if (!is_array($opcache)) {
+    echo 'UNAVAILABLE';
+    exit;
+}
 
 // Pick and calculate Opcache figures.
 $used = $opcache['memory_usage']['used_memory'];
@@ -51,7 +62,8 @@ $free = $opcache['memory_usage']['free_memory'];
 $totalreq = $opcache['opcache_statistics']['blacklist_misses'] + $opcache['opcache_statistics']['misses'] +
         $opcache['opcache_statistics']['hits'];
 $hitspct = round($opcache['opcache_statistics']['opcache_hit_rate'], 2, PHP_ROUND_HALF_UP);
-$misspct = round($opcache['opcache_statistics']['misses'] / $totalreq * 100, 2, PHP_ROUND_HALF_UP);
+$misspct = $totalreq > 0 ?
+        round($opcache['opcache_statistics']['misses'] / $totalreq * 100, 2, PHP_ROUND_HALF_UP) : 0;
 
 // Echo Opcache figures.
 echo $used."\r\n".$free."\r\n".$hitspct."\r\n".$misspct;

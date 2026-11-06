@@ -442,4 +442,127 @@ final class locallib_test extends \advanced_testcase {
         $this->assertFalse(tool_opcache_check_secretkey('reset', strrev($secretkey)));
         $this->assertFalse(tool_opcache_check_secretkey('check', $secretkey));
     }
+
+    /**
+     * Data provider for test_evaluate_check_response().
+     *
+     * @return array
+     */
+    public static function evaluate_check_response_provider(): array {
+        $invalidfigures = 'UNKNOWN - The webserver did not return valid Opcache figures. Opcache may be disabled on the ' .
+                'webserver.';
+        return [
+            'nagios check disabled on the webserver' => [
+                'response' => 'DISABLED',
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 3,
+                'expectedout' => 'UNKNOWN - The Nagios check is not enabled on the webserver. See README.md for details.',
+            ],
+            'wrong secret key' => [
+                'response' => 'FORBIDDEN',
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 2,
+                'expectedout' => 'CRITICAL - Secret key is required but is not correct.',
+            ],
+            'opcache unavailable on the webserver' => [
+                'response' => 'UNAVAILABLE',
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 3,
+                'expectedout' => 'UNKNOWN - Opcache is not available on the webserver (extension not loaded, disabled or ' .
+                        'API access restricted).',
+            ],
+            'webserver not reachable' => [
+                'response' => false,
+                'curlerrno' => 7,
+                'curlerror' => 'Failed to connect to localhost',
+                'expectedstatus' => 3,
+                'expectedout' => 'UNKNOWN - The Opcache figures could not be fetched from the webserver: ' .
+                        'Failed to connect to localhost',
+            ],
+            'empty response' => [
+                'response' => '',
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 3,
+                'expectedout' => $invalidfigures,
+            ],
+            'error page' => [
+                'response' => '<html><body>Internal Server Error</body></html>',
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 3,
+                'expectedout' => $invalidfigures,
+            ],
+            'figures preceded by a php warning' => [
+                'response' => "Warning: Something went wrong\r\n30\r\n70\r\n99.5\r\n0.5",
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 3,
+                'expectedout' => $invalidfigures,
+            ],
+            'too few figures' => [
+                'response' => "30\r\n70\r\n99.5",
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 3,
+                'expectedout' => $invalidfigures,
+            ],
+            'empty memory figures' => [
+                'response' => "0\r\n0\r\n0\r\n0",
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 3,
+                'expectedout' => 'UNKNOWN - The webserver returned empty Opcache memory figures.',
+            ],
+            'below warning threshold' => [
+                'response' => "30\r\n70\r\n99.5\r\n0.5",
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 0,
+                'expectedout' => 'OK - 30% cache used | used_pct=30%;80;90 hit_pct=99.5%; miss_pct=0.5%;',
+            ],
+            'below warning threshold with unix line endings' => [
+                'response' => "30\n70\n99.5\n0.5\n",
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 0,
+                'expectedout' => 'OK - 30% cache used | used_pct=30%;80;90 hit_pct=99.5%; miss_pct=0.5%;',
+            ],
+            'warning threshold reached' => [
+                'response' => "80\r\n20\r\n99.5\r\n0.5",
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 1,
+                'expectedout' => 'WARNING - 80% cache used | used_pct=80%;80;90 hit_pct=99.5%; miss_pct=0.5%;',
+            ],
+            'critical threshold reached' => [
+                'response' => "95\r\n5\r\n99.5\r\n0.5",
+                'curlerrno' => 0,
+                'curlerror' => '',
+                'expectedstatus' => 2,
+                'expectedout' => 'CRITICAL - 95% cache used | used_pct=95%;80;90 hit_pct=99.5%; miss_pct=0.5%;',
+            ],
+        ];
+    }
+
+    /**
+     * Test that the response of the web part of the Nagios check is evaluated to the correct Nagios status and output.
+     *
+     * @dataProvider evaluate_check_response_provider
+     * @covers ::tool_opcache_evaluate_check_response
+     *
+     * @param string|bool $response The response of the web part of the Nagios check.
+     * @param int $curlerrno The curl error number.
+     * @param string $curlerror The curl error message.
+     * @param int $expectedstatus The expected Nagios return status.
+     * @param string $expectedout The expected output.
+     */
+    public function test_evaluate_check_response($response, int $curlerrno, string $curlerror, int $expectedstatus,
+            string $expectedout): void {
+        $this->assertSame([$expectedstatus, $expectedout],
+                tool_opcache_evaluate_check_response($response, $curlerrno, $curlerror, 80, 90));
+    }
 }
