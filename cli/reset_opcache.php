@@ -101,6 +101,8 @@ if ($curlret == '0') {
     cli_error('The Opcache Reset is not enabled in config.php. See README.md for details.');
 } else if ($curlret == '2') {
     cli_error('Secret key is required but is not correct.');
+} else if ($curlret == '3') {
+    cli_error('PHP opcache could not be reset as requested. The Opcache extension is not loaded on this server.');
 } else {
     cli_error('PHP opcache could not be reset as requested. PHP opcache may simply be disabled on this server.');
 }
