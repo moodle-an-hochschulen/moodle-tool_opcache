@@ -120,16 +120,16 @@ function tool_opcache_add_sesskey_to_write_requests($output) {
 }
 
 /**
- * Helper function to get the secret key which is set for the given CLI tool in config.php.
+ * Helper function to get the secret key which is set for the given CLI tool in the Moodle configuration.
  *
  * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
  *
- * @return string The secret key or an empty string if no secret key is set in config.php.
+ * @return string The secret key or an empty string if no secret key is set.
  */
 function tool_opcache_get_cfg_secretkey($tool) {
     global $CFG;
 
-    // Get the secret key from config.php.
+    // Get the secret key from the Moodle configuration.
     $setting = 'tool_opcache_' . $tool . '_secretkey';
     if (!isset($CFG->$setting) || !is_scalar($CFG->$setting)) {
         return '';
@@ -139,10 +139,10 @@ function tool_opcache_get_cfg_secretkey($tool) {
 }
 
 /**
- * Helper function to check if the given CLI tool is enabled in config.php.
+ * Helper function to check if the given CLI tool is enabled in the Moodle configuration.
  *
- * The CLI tools are disabled by default. They are enabled with a setting in config.php.
- * For backwards compatibility, they are also enabled if a secret key is set in config.php.
+ * The CLI tools are disabled by default. They are enabled with a setting in config.php or in the Moodle database.
+ * For backwards compatibility, they are also enabled if a secret key is set.
  *
  * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
  *
@@ -151,23 +151,20 @@ function tool_opcache_get_cfg_secretkey($tool) {
 function tool_opcache_is_cli_tool_enabled($tool) {
     global $CFG;
 
-    // Check if the CLI tool is enabled explicitly in config.php.
-    // Any truthy value like true or 1 enables the CLI tool.
-    // The setting is read from $CFG->config_php_settings and not from $CFG directly to make sure that the CLI tool can only
-    // be enabled in config.php and not by a setting with the same name in the Moodle database.
+    // Check if the CLI tool is enabled explicitly.
     $setting = 'tool_opcache_' . $tool . '_enabled';
-    if (!empty($CFG->config_php_settings[$setting])) {
+    if (!empty($CFG->$setting)) {
         return true;
     }
 
-    // Check if the CLI tool is enabled implicitly by a secret key in config.php.
+    // Check if the CLI tool is enabled implicitly by a secret key.
     return tool_opcache_get_cfg_secretkey($tool) !== '';
 }
 
 /**
  * Helper function to get the secret key which is used by the given CLI tool to call its web part.
  *
- * If a secret key is set in config.php, this secret key is used.
+ * If a secret key is set in the Moodle configuration (config.php or Moodle database), this secret key is used.
  * Otherwise, the secret key which has been generated automatically and which is stored in the plugin config is used.
  *
  * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
@@ -178,7 +175,7 @@ function tool_opcache_is_cli_tool_enabled($tool) {
  * @return string The secret key or an empty string if there isn't any secret key (yet).
  */
 function tool_opcache_get_secretkey($tool, $generate = false) {
-    // If a secret key is set in config.php, use it.
+    // If a secret key is set in the Moodle configuration, use it.
     $secretkey = tool_opcache_get_cfg_secretkey($tool);
     if ($secretkey !== '') {
         return $secretkey;
