@@ -111,12 +111,32 @@ if ($curlret == 'FORBIDDEN') {
     exit(2);
 }
 
+// Die if the webserver could not be reached.
+if ($curl->get_errno()) {
+    cli_writeln('UNKNOWN - The Opcache figures could not be fetched from the webserver: ' . $curl->error);
+    exit($returnstatus);
+}
+
+// Die if the webserver did not return the four Opcache figures (for example an error page or an empty response if
+// Opcache is disabled on the webserver).
+// The web part separates the figures with "\r\n", so do not split by PHP_EOL here.
+$figures = preg_split('/\r?\n/', trim((string) $curlret));
+if (count($figures) != 4 || count(array_filter($figures, 'is_numeric')) != 4) {
+    cli_writeln('UNKNOWN - The webserver did not return valid Opcache figures. Opcache may be disabled on the webserver.');
+    exit($returnstatus);
+}
+
 // Pick Opcache figures.
-$figures = explode(PHP_EOL, $curlret);
 $used = clean_param($figures[0], PARAM_INT);
 $free = clean_param($figures[1], PARAM_INT);
 $hitspct = clean_param($figures[2], PARAM_FLOAT);
 $misspct = clean_param($figures[3], PARAM_FLOAT);
+
+// Die if the Opcache memory figures are empty (basically, this should not happen).
+if ($used + $free <= 0) {
+    cli_writeln('UNKNOWN - The webserver returned empty Opcache memory figures.');
+    exit($returnstatus);
+}
 
 
 // Calculate used percentage value.
