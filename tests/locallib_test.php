@@ -608,9 +608,16 @@ final class locallib_test extends \advanced_testcase {
      * @param int $expectedstatus The expected Nagios return status.
      * @param string $expectedout The expected output.
      */
-    public function test_evaluate_check_response($response, int $curlerrno, string $curlerror, int $expectedstatus,
-            string $expectedout): void {
-        $this->assertSame([$expectedstatus, $expectedout],
-                tool_opcache_evaluate_check_response($response, $curlerrno, $curlerror, 80, 90));
+    public function test_evaluate_check_response(
+        $response,
+        int $curlerrno,
+        string $curlerror,
+        int $expectedstatus,
+        string $expectedout
+    ): void {
+        $this->assertSame(
+            [$expectedstatus, $expectedout],
+            tool_opcache_evaluate_check_response($response, $curlerrno, $curlerror, 80, 90)
+        );
     }
 }

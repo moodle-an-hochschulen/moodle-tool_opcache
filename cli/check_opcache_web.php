@@ -23,16 +23,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// phpcs:disable
-// Let codechecker ignore this file because otherwise it would complain about a missing MOODLE_INTERNAL check or config.php
-// inclusion which is really not needed.
-
 // Do not start a Moodle session as the web part is called without any cookies by its CLI part.
 // Otherwise, a new session would be created with each call.
 define('NO_MOODLE_COOKIES', true);
 
-require(__DIR__.'/../../../../config.php');
-require_once(__DIR__.'/../locallib.php');
+require(__DIR__ . '/../../../../config.php');
+require_once(__DIR__ . '/../locallib.php');
 
 // Die if the Nagios check is not enabled.
 if (!tool_opcache_is_cli_tool_enabled('check')) {
@@ -71,4 +67,4 @@ $misspct = $totalreq > 0 ?
         round($opcache['opcache_statistics']['misses'] / $totalreq * 100, 2, PHP_ROUND_HALF_UP) : 0;
 
 // Echo Opcache figures.
-echo $used."\r\n".$free."\r\n".$hitspct."\r\n".$misspct;
+echo $used . "\r\n" . $free . "\r\n" . $hitspct . "\r\n" . $misspct;
