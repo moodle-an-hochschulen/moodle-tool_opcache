@@ -84,6 +84,12 @@ $options['url'] = clean_param($options['url'], PARAM_URL);
 $options['warning'] = clean_param($options['warning'], PARAM_INT);
 $options['critical'] = clean_param($options['critical'], PARAM_INT);
 
+// Die if the thresholds do not make sense.
+if ($options['warning'] > $options['critical']) {
+    cli_writeln('UNKNOWN - The threshold for warning must not be greater than the threshold for critical.');
+    exit($returnstatus);
+}
+
 
 // Fetch Opcache figures from webserver.
 $curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
@@ -100,8 +106,13 @@ $params = ['secret' => tool_opcache_get_secretkey('check', true)];
 $curlret = $curl->get($options['url'], $params, $curloptions);
 
 // Evaluate the response of the webserver.
-[$returnstatus, $out] = tool_opcache_evaluate_check_response($curlret, $curl->get_errno(), (string) $curl->error,
-        $options['warning'], $options['critical']);
+[$returnstatus, $out] = tool_opcache_evaluate_check_response(
+    $curlret,
+    $curl->get_errno(),
+    (string) $curl->error,
+    $options['warning'],
+    $options['critical']
+);
 
 // Echo return string.
 cli_writeln($out);
