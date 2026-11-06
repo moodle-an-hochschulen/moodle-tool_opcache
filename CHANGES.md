@@ -6,6 +6,7 @@ Changes
 
 ### Unreleased
 
+* 2026-11-06 - Improvement: Let the Nagios check report an UNKNOWN status if the threshold for warning is greater than the threshold for critical.
 * 2026-11-06 - Improvement: Let the web parts of the Nagios check and the CLI tool to reset PHP opcache run without a Moodle session (NO_MOODLE_COOKIES). Until now, each call of a web part created a new Moodle session as its CLI part does not send any cookies.
 * 2026-11-06 - Improvement: Let the web part of the Nagios check fetch the Opcache status without the list of all cached scripts as only the memory and statistics figures are needed. This reduces the load of each Nagios check on webservers with many cached scripts.
 * 2026-11-06 - Bugfix: Fix the paths and the quoting of the example calls of the CLI tools in README.md and in the CLI help output and add the missing parameters to the example call in the help output of the CLI tool to reset PHP opcache.
