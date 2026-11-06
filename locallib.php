@@ -216,3 +216,76 @@ function tool_opcache_check_secretkey($tool, $submittedsecretkey) {
     // numeric strings as numbers (as '!=' does, where '1e3' would match '1000').
     return hash_equals($secretkey, (string) $submittedsecretkey);
 }
+
+/**
+ * Helper function to evaluate the response of the web part of the Nagios check.
+ *
+ * @param string|bool $response The response of the web part of the Nagios check.
+ * @param int $curlerrno The curl error number of the request to the web part (0 if there wasn't any error).
+ * @param string $curlerror The curl error message of the request to the web part.
+ * @param int $warning The threshold for warning (used cache in percent).
+ * @param int $critical The threshold for critical (used cache in percent).
+ *
+ * @return array An array with the Nagios return status (0 = OK, 1 = WARNING, 2 = CRITICAL, 3 = UNKNOWN) and the output.
+ */
+function tool_opcache_evaluate_check_response($response, $curlerrno, $curlerror, $warning, $critical) {
+    // Die if the Nagios check is not enabled on the webserver (basically, this should not happen).
+    if ($response === 'DISABLED') {
+        return [3, 'UNKNOWN - The Nagios check is not enabled on the webserver. See README.md for details.'];
+    }
+
+    // Die if the secret key is not correct (basically, this should not happen).
+    if ($response === 'FORBIDDEN') {
+        return [2, 'CRITICAL - Secret key is required but is not correct.'];
+    }
+
+    // Die if Opcache is not available on the webserver.
+    if ($response === 'UNAVAILABLE') {
+        return [3, 'UNKNOWN - Opcache is not available on the webserver (extension not loaded, disabled or API access ' .
+                'restricted).'];
+    }
+
+    // Die if the webserver could not be reached.
+    if ($curlerrno) {
+        return [3, 'UNKNOWN - The Opcache figures could not be fetched from the webserver: ' . $curlerror];
+    }
+
+    // Die if the webserver did not return the four Opcache figures (for example an error page or an empty response).
+    // The web part separates the figures with "\r\n", so do not split by PHP_EOL here.
+    $figures = preg_split('/\r?\n/', trim((string) $response));
+    if (count($figures) != 4 || count(array_filter($figures, 'is_numeric')) != 4) {
+        return [3, 'UNKNOWN - The webserver did not return valid Opcache figures. Opcache may be disabled on the webserver.'];
+    }
+
+    // Pick Opcache figures.
+    $used = clean_param($figures[0], PARAM_INT);
+    $free = clean_param($figures[1], PARAM_INT);
+    $hitspct = clean_param($figures[2], PARAM_FLOAT);
+    $misspct = clean_param($figures[3], PARAM_FLOAT);
+
+    // Die if the Opcache memory figures are empty (basically, this should not happen).
+    if ($used + $free <= 0) {
+        return [3, 'UNKNOWN - The webserver returned empty Opcache memory figures.'];
+    }
+
+    // Calculate used percentage value.
+    $usedpct = round($used / ($used + $free) * 100, 1);
+    // Calculate return status.
+    if ($usedpct >= $critical) {
+        $returnstatus = 2;
+        $prefix = 'CRITICAL';
+    } else if ($usedpct >= $warning) {
+        $returnstatus = 1;
+        $prefix = 'WARNING';
+    } else {
+        $returnstatus = 0;
+        $prefix = 'OK';
+    }
+
+    // Concatenate return string including performance data.
+    $out = $prefix . ' - ' . $usedpct . "% cache used | " .
+            "used_pct=" . $usedpct . "%;" . $warning . ";" . $critical . " hit_pct=" . $hitspct .
+                    "%; miss_pct=" . $misspct . "%;";
+
+    return [$returnstatus, $out];
+}
