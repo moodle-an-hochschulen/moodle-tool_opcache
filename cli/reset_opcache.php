@@ -29,8 +29,6 @@ require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once(__DIR__ . '/../locallib.php');
 
-global $CFG;
-
 
 // Get cli options.
 [$options, $unrecognized] = cli_get_params(
