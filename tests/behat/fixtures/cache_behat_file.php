@@ -30,11 +30,11 @@ require_once(__DIR__ . '/../../../../../../config.php');
 
 defined('BEHAT_SITE_RUNNING') || die();
 
-global $PAGE, $OUTPUT;
+global $CFG, $PAGE, $OUTPUT;
 
 require_admin();
 
-$PAGE->set_url('/admin/tool/opcache/tests/behat/fixtures/cache_behat_file.php');
+$PAGE->set_url('/' . $CFG->admin . '/tool/opcache/tests/behat/fixtures/cache_behat_file.php');
 $PAGE->set_context(context_system::instance());
 
 echo $OUTPUT->header();
