@@ -6,6 +6,10 @@ Changes
 
 ### Unreleased
 
+* 2026-11-04 - Improvement: Disable the Nagios check and the CLI tool to reset PHP opcache by default. They have to be enabled with a setting in config.php now and their web parts are always protected by a secret key which is generated automatically if it is not set in config.php. For backwards compatibility, setting a secret key in config.php still enables the particular tool as well.
+               Please note: Up to now, the Nagios check was enabled by default and the secret key was optional. If you have used the Nagios check without a secret key until now, you have to enable it now by adding $CFG->tool_opcache_check_enabled = true; to config.php after upgrading the plugin. Otherwise, the Nagios check will report an UNKNOWN status. If you have already set a secret key in config.php for the Nagios check or the CLI tool to reset PHP opcache, you do not have to change anything as the secret key still enables the particular tool. Please see README.md for details.
+* 2026-11-04 - Bugfix: Compare the secret keys of the web parts of the Nagios check and the CLI tool to reset PHP opcache with hash_equals(). Until now, a numeric secret key could be matched by a different numeric string (like '1e3' for '1000').
+* 2026-11-04 - Bugfix: Fix the file name of the web part of the Nagios check in README.md.
 * 2026-11-03 - Improvement: Protect the write operations of the Opcache GUI (resetting the cache and invalidating files) against cross-site request forgery with a sesskey check, including PHPUnit and Behat tests.
 
 ### v5.2-r2
