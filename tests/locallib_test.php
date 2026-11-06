@@ -284,16 +284,64 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
-     * Test that a setting in the Moodle database with the same name does not enable the CLI tools.
+     * Test that the CLI tools can also be enabled with a setting in the Moodle database.
      *
      * @covers ::tool_opcache_is_cli_tool_enabled
      */
-    public function test_is_cli_tool_enabled_not_from_db(): void {
+    public function test_is_cli_tool_enabled_from_db(): void {
         $this->resetAfterTest();
 
         set_config('tool_opcache_check_enabled', 1);
 
+        $this->assertTrue(tool_opcache_is_cli_tool_enabled('check'));
+        $this->assertFalse(tool_opcache_is_cli_tool_enabled('reset'));
+
+        set_config('tool_opcache_check_enabled', 0);
+
         $this->assertFalse(tool_opcache_is_cli_tool_enabled('check'));
+    }
+
+    /**
+     * Test that the CLI tools can also be enabled with a secret key in the Moodle database and that it is used then.
+     *
+     * @covers ::tool_opcache_is_cli_tool_enabled
+     * @covers ::tool_opcache_get_cfg_secretkey
+     * @covers ::tool_opcache_get_secretkey
+     * @covers ::tool_opcache_check_secretkey
+     */
+    public function test_secretkey_from_db(): void {
+        $this->resetAfterTest();
+
+        set_config('tool_opcache_reset_secretkey', 'dbsecretkey');
+
+        $this->assertTrue(tool_opcache_is_cli_tool_enabled('reset'));
+        $this->assertSame('dbsecretkey', tool_opcache_get_secretkey('reset', true));
+        $this->assertTrue(tool_opcache_check_secretkey('reset', 'dbsecretkey'));
+
+        // No secret key has been generated as the secret key from the Moodle database is used.
+        $this->assertFalse(get_config('tool_opcache', 'resetsecretkey'));
+    }
+
+    /**
+     * Test that the settings in config.php take precedence over the settings in the Moodle database.
+     *
+     * @covers ::tool_opcache_is_cli_tool_enabled
+     * @covers ::tool_opcache_get_cfg_secretkey
+     */
+    public function test_config_php_takes_precedence_over_db(): void {
+        $this->resetAfterTest();
+
+        // A falsy value in config.php disables the CLI tool even if it is enabled in the Moodle database.
+        $this->set_config_php_setting('tool_opcache_check_enabled', false);
+        set_config('tool_opcache_check_enabled', 1);
+
+        $this->assertFalse(tool_opcache_is_cli_tool_enabled('check'));
+
+        // The secret key from config.php is used instead of the secret key from the Moodle database.
+        $this->set_config_php_setting('tool_opcache_reset_secretkey', 'cfgsecretkey');
+        set_config('tool_opcache_reset_secretkey', 'dbsecretkey');
+
+        $this->assertSame('cfgsecretkey', tool_opcache_get_cfg_secretkey('reset'));
     }
 
     /**
