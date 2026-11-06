@@ -27,6 +27,10 @@
 // Let codechecker ignore this file because otherwise it would complain about a missing MOODLE_INTERNAL check or config.php
 // inclusion which is really not needed.
 
+// Do not start a Moodle session as the web part is called without any cookies by its CLI part.
+// Otherwise, a new session would be created with each call.
+define('NO_MOODLE_COOKIES', true);
+
 require(__DIR__.'/../../../../config.php');
 require_once(__DIR__.'/../locallib.php');
 
