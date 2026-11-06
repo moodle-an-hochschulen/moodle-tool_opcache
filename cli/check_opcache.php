@@ -63,8 +63,8 @@ Options:
 -c, --critical  Threshold for critical (Default: 90)
 -h, --help      Print out this help
 
-Example:
-\$ sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php " .
+Example (run from the Moodle root directory):
+\$ sudo -u www-data /usr/bin/php admin/tool/opcache/cli/check_opcache.php " .
         "--url=\"https://example.com/admin/tool/opcache/cli/check_opcache_web.php\" --warning=75 --critical=85
 ";
     cli_writeln($help);

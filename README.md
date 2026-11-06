@@ -113,14 +113,14 @@ $CFG->tool_opcache_reset_secretkey = 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHK
 For backwards compatibility, setting this secret key in config.php also enables this CLI tool, even without the $CFG->tool_opcache_reset_enabled setting.
 
 
-Example usage:
+Example usage (run from the Moodle root directory):
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php --url=\"https://example.com/admin/tool/opcache/cli/reset_opcache_web.php\" --reset
+sudo -u www-data /usr/bin/php admin/tool/opcache/cli/reset_opcache.php --url="https://example.com/admin/tool/opcache/cli/reset_opcache_web.php" --reset
 ```
 
 For more information about the usage run:
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php --help
+sudo -u www-data /usr/bin/php admin/tool/opcache/cli/reset_opcache.php --help
 ```
 
 If run successfully, the CLI script will return a clear message:
@@ -163,14 +163,14 @@ $CFG->tool_opcache_check_secretkey = 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHK
 For backwards compatibility, setting this secret key in config.php also enables the Nagios check, even without the $CFG->tool_opcache_check_enabled setting.
 
 
-Example usage:
+Example usage (run from the Moodle root directory):
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php --url=\"https://example.com/admin/tool/opcache/cli/check_opcache_web.php\" --warning=80 --critical=90
+sudo -u www-data /usr/bin/php admin/tool/opcache/cli/check_opcache.php --url="https://example.com/admin/tool/opcache/cli/check_opcache_web.php" --warning=80 --critical=90
 ```
 
 For more information about the usage run:
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php --help
+sudo -u www-data /usr/bin/php admin/tool/opcache/cli/check_opcache.php --help
 ```
 
 The CLI script will return a string similar to:

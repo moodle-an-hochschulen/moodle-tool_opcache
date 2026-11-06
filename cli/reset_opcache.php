@@ -57,8 +57,10 @@ Options:
 -r, --reset     Reset PHP opcache on this server
 -h, --help      Print out this help
 
-Example:
-\$ sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php ";
+Example (run from the Moodle root directory):
+\$ sudo -u www-data /usr/bin/php admin/tool/opcache/cli/reset_opcache.php " .
+        "--url=\"https://example.com/admin/tool/opcache/cli/reset_opcache_web.php\" --reset
+";
     cli_writeln($help);
     exit(0);
 }
@@ -100,7 +102,7 @@ if ($curlret == '0') {
 } else if ($curlret == '1') {
     cli_error('The Opcache Reset is not enabled in config.php. See README.md for details.');
 } else if ($curlret == '2') {
-    cli_error('Secret key is required but is not correct.');
+    cli_error('Secret key is required but is not correct. See README.md for details.');
 } else if ($curlret == '3') {
     cli_error('PHP opcache could not be reset as requested. The Opcache extension is not loaded on this server.');
 } else {
