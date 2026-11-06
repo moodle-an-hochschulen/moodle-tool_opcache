@@ -182,4 +182,264 @@ final class locallib_test extends \advanced_testcase {
         $result = tool_opcache_add_sesskey_to_write_requests($result);
         $this->assertStringContainsString('axios.interceptors.request.use(', $result);
     }
+
+    /**
+     * Data provider for test_is_cli_tool_enabled().
+     *
+     * @return array
+     */
+    public static function is_cli_tool_enabled_provider(): array {
+        return [
+            'nothing set' => [
+                'enabled' => null,
+                'secretkey' => null,
+                'expected' => false,
+            ],
+            'enabled' => [
+                'enabled' => true,
+                'secretkey' => null,
+                'expected' => true,
+            ],
+            'explicitly disabled' => [
+                'enabled' => false,
+                'secretkey' => null,
+                'expected' => false,
+            ],
+            'secret key set (backwards compatibility)' => [
+                'enabled' => null,
+                'secretkey' => 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa',
+                'expected' => true,
+            ],
+            'empty secret key set' => [
+                'enabled' => null,
+                'secretkey' => '',
+                'expected' => false,
+            ],
+            'enabled and secret key set' => [
+                'enabled' => true,
+                'secretkey' => 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa',
+                'expected' => true,
+            ],
+        ];
+    }
+
+    /**
+     * Test that the CLI tools are disabled by default and that they are enabled by the settings in config.php.
+     *
+     * @dataProvider is_cli_tool_enabled_provider
+     * @covers ::tool_opcache_is_cli_tool_enabled
+     * @covers ::tool_opcache_get_cfg_secretkey
+     *
+     * @param bool|null $enabled The value of the enabled setting in config.php or null if not set.
+     * @param string|null $secretkey The value of the secret key setting in config.php or null if not set.
+     * @param bool $expected The expected result.
+     */
+    public function test_is_cli_tool_enabled(?bool $enabled, ?string $secretkey, bool $expected): void {
+        $this->resetAfterTest();
+
+        foreach (['check', 'reset'] as $tool) {
+            // Set the settings in config.php.
+            if ($enabled !== null) {
+                $this->set_config_php_setting('tool_opcache_' . $tool . '_enabled', $enabled);
+            }
+            if ($secretkey !== null) {
+                $this->set_config_php_setting('tool_opcache_' . $tool . '_secretkey', $secretkey);
+            }
+
+            $this->assertSame($expected, tool_opcache_is_cli_tool_enabled($tool));
+        }
+    }
+
+    /**
+     * Test that the CLI tools are enabled independently from each other.
+     *
+     * @covers ::tool_opcache_is_cli_tool_enabled
+     */
+    public function test_is_cli_tool_enabled_independently(): void {
+        $this->resetAfterTest();
+
+        $this->set_config_php_setting('tool_opcache_check_enabled', true);
+
+        $this->assertTrue(tool_opcache_is_cli_tool_enabled('check'));
+        $this->assertFalse(tool_opcache_is_cli_tool_enabled('reset'));
+    }
+
+    /**
+     * Test that any truthy value in config.php enables the CLI tools and that any falsy value does not.
+     *
+     * @covers ::tool_opcache_is_cli_tool_enabled
+     */
+    public function test_is_cli_tool_enabled_truthy(): void {
+        $this->resetAfterTest();
+
+        foreach ([true, 1, '1', 'yes'] as $value) {
+            $this->set_config_php_setting('tool_opcache_check_enabled', $value);
+            $this->assertTrue(tool_opcache_is_cli_tool_enabled('check'));
+        }
+
+        foreach ([false, 0, '0', ''] as $value) {
+            $this->set_config_php_setting('tool_opcache_check_enabled', $value);
+            $this->assertFalse(tool_opcache_is_cli_tool_enabled('check'));
+        }
+    }
+
+    /**
+     * Test that a setting in the Moodle database with the same name does not enable the CLI tools.
+     *
+     * @covers ::tool_opcache_is_cli_tool_enabled
+     */
+    public function test_is_cli_tool_enabled_not_from_db(): void {
+        $this->resetAfterTest();
+
+        set_config('tool_opcache_check_enabled', 1);
+
+        $this->assertFalse(tool_opcache_is_cli_tool_enabled('check'));
+    }
+
+    /**
+     * Helper function to set a setting as if it was set in config.php.
+     *
+     * Moodle keeps the original value in $CFG->config_php_settings, but converts the value in $CFG to a string during
+     * bootstrap (see initialise_cfg() and get_config()). This is mimicked here.
+     *
+     * @param string $name The name of the setting.
+     * @param mixed $value The value of the setting.
+     */
+    private function set_config_php_setting(string $name, $value): void {
+        global $CFG;
+
+        $CFG->config_php_settings[$name] = $value;
+        $CFG->$name = (string) $value;
+    }
+
+    /**
+     * Test that the secret key from config.php takes precedence over the generated secret key.
+     *
+     * @covers ::tool_opcache_get_secretkey
+     * @covers ::tool_opcache_get_cfg_secretkey
+     */
+    public function test_get_secretkey_from_cfg(): void {
+        global $CFG;
+        $this->resetAfterTest();
+
+        set_config('checksecretkey', 'generatedsecretkey', 'tool_opcache');
+        $CFG->tool_opcache_check_secretkey = 'cfgsecretkey';
+
+        $this->assertSame('cfgsecretkey', tool_opcache_get_secretkey('check'));
+        $this->assertSame('cfgsecretkey', tool_opcache_get_secretkey('check', true));
+        $this->assertSame('generatedsecretkey', get_config('tool_opcache', 'checksecretkey'));
+    }
+
+    /**
+     * Test that the secret key is only generated if requested and that it is stored and reused then.
+     *
+     * @covers ::tool_opcache_get_secretkey
+     */
+    public function test_get_secretkey_generated(): void {
+        $this->resetAfterTest();
+
+        // Without generation, there isn't any secret key yet.
+        $this->assertSame('', tool_opcache_get_secretkey('check'));
+        $this->assertFalse(get_config('tool_opcache', 'checksecretkey'));
+
+        // With generation, an alphanumeric secret key is generated and stored.
+        $secretkey = tool_opcache_get_secretkey('check', true);
+        $this->assertMatchesRegularExpression('/^[A-Za-z0-9]{64}$/', $secretkey);
+        $this->assertSame($secretkey, get_config('tool_opcache', 'checksecretkey'));
+
+        // The stored secret key is reused afterwards.
+        $this->assertSame($secretkey, tool_opcache_get_secretkey('check'));
+        $this->assertSame($secretkey, tool_opcache_get_secretkey('check', true));
+
+        // The secret key of the other CLI tool is not affected.
+        $this->assertSame('', tool_opcache_get_secretkey('reset'));
+        $this->assertNotSame($secretkey, tool_opcache_get_secretkey('reset', true));
+    }
+
+    /**
+     * Data provider for test_check_secretkey().
+     *
+     * @return array
+     */
+    public static function check_secretkey_provider(): array {
+        return [
+            'correct secret key' => [
+                'secretkey' => 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa',
+                'submittedsecretkey' => 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa',
+                'expected' => true,
+            ],
+            'wrong secret key' => [
+                'secretkey' => 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa',
+                'submittedsecretkey' => 'wrongsecretkey',
+                'expected' => false,
+            ],
+            'empty submitted secret key' => [
+                'secretkey' => 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa',
+                'submittedsecretkey' => '',
+                'expected' => false,
+            ],
+            'correct numeric secret key' => [
+                'secretkey' => '1000',
+                'submittedsecretkey' => '1000',
+                'expected' => true,
+            ],
+            'numeric string with the same numeric value' => [
+                'secretkey' => '1000',
+                'submittedsecretkey' => '1e3',
+                'expected' => false,
+            ],
+            'numeric string with leading zeros' => [
+                'secretkey' => '1000',
+                'submittedsecretkey' => '01000',
+                'expected' => false,
+            ],
+        ];
+    }
+
+    /**
+     * Test that the submitted secret key is checked strictly against the secret key.
+     *
+     * @dataProvider check_secretkey_provider
+     * @covers ::tool_opcache_check_secretkey
+     *
+     * @param string $secretkey The secret key in config.php.
+     * @param string $submittedsecretkey The submitted secret key.
+     * @param bool $expected The expected result.
+     */
+    public function test_check_secretkey(string $secretkey, string $submittedsecretkey, bool $expected): void {
+        global $CFG;
+        $this->resetAfterTest();
+
+        $CFG->tool_opcache_check_secretkey = $secretkey;
+
+        $this->assertSame($expected, tool_opcache_check_secretkey('check', $submittedsecretkey));
+    }
+
+    /**
+     * Test that no submitted secret key matches if there isn't any secret key and that no secret key is generated then.
+     *
+     * @covers ::tool_opcache_check_secretkey
+     */
+    public function test_check_secretkey_without_secretkey(): void {
+        $this->resetAfterTest();
+
+        $this->assertFalse(tool_opcache_check_secretkey('check', ''));
+        $this->assertFalse(tool_opcache_check_secretkey('check', 'anysecretkey'));
+        $this->assertFalse(get_config('tool_opcache', 'checksecretkey'));
+    }
+
+    /**
+     * Test that the submitted secret key is checked against the generated secret key.
+     *
+     * @covers ::tool_opcache_check_secretkey
+     */
+    public function test_check_secretkey_generated(): void {
+        $this->resetAfterTest();
+
+        $secretkey = tool_opcache_get_secretkey('reset', true);
+
+        $this->assertTrue(tool_opcache_check_secretkey('reset', $secretkey));
+        $this->assertFalse(tool_opcache_check_secretkey('reset', strrev($secretkey)));
+        $this->assertFalse(tool_opcache_check_secretkey('check', $secretkey));
+    }
 }

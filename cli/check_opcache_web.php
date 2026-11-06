@@ -28,12 +28,16 @@
 // inclusion which is really not needed.
 
 require(__DIR__.'/../../../../config.php');
+require_once(__DIR__.'/../locallib.php');
 
-global $CFG, $PAGE;
+// Die if the Nagios check is not enabled.
+if (!tool_opcache_is_cli_tool_enabled('check')) {
+    echo 'DISABLED';
+    exit;
+}
 
-// Die if secret key is set but the submitted secret key is not correct.
-if (isset($CFG->tool_opcache_check_secretkey) &&
-            $CFG->tool_opcache_check_secretkey != clean_param($PAGE->url->get_param('secret'), PARAM_ALPHANUM)) {
+// Die if the submitted secret key is not correct.
+if (!tool_opcache_check_secretkey('check', optional_param('secret', '', PARAM_ALPHANUM))) {
     echo 'FORBIDDEN';
     exit;
 }
