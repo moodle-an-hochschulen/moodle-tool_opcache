@@ -49,8 +49,9 @@ if (!function_exists('opcache_get_status')) {
 }
 
 // Get Opcache status.
+// The list of cached scripts is not fetched as only the memory and statistics figures are needed.
 // Die if Opcache is disabled or if the API access is restricted on the webserver.
-$opcache = @opcache_get_status();
+$opcache = @opcache_get_status(false);
 if (!is_array($opcache)) {
     echo 'UNAVAILABLE';
     exit;
