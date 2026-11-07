@@ -27,8 +27,7 @@ define('CLI_SCRIPT', true);
 require(__DIR__ . '/../../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/filelib.php');
-
-global $CFG;
+require_once(__DIR__ . '/../locallib.php');
 
 
 // Get cli options.
@@ -56,10 +55,18 @@ Options:
 -r, --reset     Reset PHP opcache on this server
 -h, --help      Print out this help
 
-Example:
-\$ sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php ";
+Example (run from the Moodle root directory):
+\$ sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/reset_opcache.php " .
+        "--url=\"https://example.com/admin/tool/opcache/cli/reset_opcache_web.php\" --reset
+";
     cli_writeln($help);
     exit(0);
+}
+
+
+// Die if resetting opcache is not enabled.
+if (!tool_opcache_is_cli_tool_enabled('reset')) {
+    cli_error('The Opcache Reset is not enabled in config.php. See README.md for details.');
 }
 
 
@@ -78,25 +85,24 @@ $curloptions = [
         'HEADER' => false,
         'CONNECTTIMEOUT' => 5,
 ];
-$params = [];
-if (isset($CFG->tool_opcache_reset_secretkey)) {
-    $params['secret'] = $CFG->tool_opcache_reset_secretkey;
-}
+$params = ['secret' => tool_opcache_get_secretkey('reset', true)];
 $curlret = $curl->get($options['url'], $params, $curloptions);
+
+// Die if the webserver could not be reached.
+if ($curl->get_errno()) {
+    cli_error('PHP opcache could not be reset as requested. The webserver could not be reached: ' . $curl->error);
+}
 
 // Echo return string and exit with return status.
 if ($curlret == '0') {
     cli_writeln('PHP opcache has been reset successfully on this server.');
     exit(0);
 } else if ($curlret == '1') {
-    cli_error('PHP opcache could not be reset as requested.
-$CFG->tool_opcache_reset_allowed is not set in config.php.
-See README.md for details.');
+    cli_error('The Opcache Reset is not enabled in config.php. See README.md for details.');
 } else if ($curlret == '2') {
-    cli_error('PHP opcache could not be reset as requested.
-The submitted secret key does not match $CFG->tool_opcache_reset_allowed from config.php.
-See README.md for details.');
+    cli_error('Secret key is required but is not correct. See README.md for details.');
+} else if ($curlret == '3') {
+    cli_error('PHP opcache could not be reset as requested. The Opcache extension is not loaded on this server.');
 } else {
-    cli_error('PHP opcache could not be reset as requested.
-The reason for this may simply be that PHP opcache is disabled on this server.');
+    cli_error('PHP opcache could not be reset as requested. PHP opcache may simply be disabled on this server.');
 }

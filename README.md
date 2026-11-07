@@ -81,12 +81,6 @@ There is a potential for sensitive data leak, not personal data but data about t
 Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) or take any other measure that this file can not be accessed directly by a browser.
 
 
-Privacy note
-------------
-
-The Opcache-GUI which is used within this plugin is using several JavaScript libraries from the unpkg.com CDN. This is important to note as Moodle core strives to be as CDN-free as possible normally. As a result, you will have to accept that your browser will fetch the JavaScript libraries from the CDN and during this request at least your IP address will be exposed to the CDN. However, this just applies to the admin tool page on Site administration -> Server -> Opcache management, nothing more and nothing less.
-
-
 CLI tool
 --------
 
@@ -102,22 +96,31 @@ This file is a Moodle CLI script which can only be run on the command line. To b
 
 
 Security mechanism:
-As cli/reset_opcache_web.php will reset PHP opcache without any Moodle user authentication and as this could be abused for denial-of-service attacks, a secret key has to be set in config.php. This secret key is used internally by cli/reset_opcache.php to call cli/reset_opcache_web.php. Without submitting the correct secret key to cli/reset_opcache_web.php, cli/reset_opcache_web.php will not reset PHP opcache.
+As cli/reset_opcache_web.php will reset PHP opcache without any Moodle user authentication and as this could be abused for denial-of-service attacks, this CLI tool is disabled by default and cli/reset_opcache_web.php is protected by a secret key. This secret key is used internally by cli/reset_opcache.php to call cli/reset_opcache_web.php. Without submitting the correct secret key to cli/reset_opcache_web.php, cli/reset_opcache_web.php will not reset PHP opcache.
 
-To enable this CLI tool, please add this setting to your config.php file and set this setting to an alphanumeric string of your choice:
+To enable this CLI tool, please add this setting to your config.php file:
+```
+$CFG->tool_opcache_reset_enabled = true;
+```
+
+The secret key is then generated automatically when cli/reset_opcache.php is run for the first time and it is stored in the plugin configuration in the Moodle database.
+
+If you prefer to set the secret key yourself, for example to keep it out of the Moodle database, please add this setting to your config.php file and set this setting to an alphanumeric string of your choice:
 ```
 $CFG->tool_opcache_reset_secretkey = 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa';
 ```
 
+For backwards compatibility, setting this secret key in config.php also enables this CLI tool, even without the $CFG->tool_opcache_reset_enabled setting.
 
-Example usage:
+
+Example usage (run from the Moodle root directory):
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php --url=\"https://example.com/admin/tool/opcache/cli/reset_opcache_web.php\" --reset
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/reset_opcache.php --url="https://example.com/admin/tool/opcache/cli/reset_opcache_web.php" --reset
 ```
 
 For more information about the usage run:
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/reset_opcache.php --help
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/reset_opcache.php --help
 ```
 
 If run successfully, the CLI script will return a clear message:
@@ -143,22 +146,31 @@ This file is a Moodle CLI script which can only be run on the command line. It i
 
 
 Security mechanism:
-As cli/clear_opcache_web.php will return some data about PHP opcache usage without any Moodle user authentication and as this might not be desired in all installations, a secret key can be set in config.php. If set, this secret key is used internally by cli/check_opcache.php to call cli/check_opcache_web.php. Without submitting the correct secret key to cli/check_opcache_web.php, cli/check_opcache_web.php will then not return any values.
+As cli/check_opcache_web.php will return some data about PHP opcache usage without any Moodle user authentication and as this might not be desired in all installations, the Nagios check is disabled by default and cli/check_opcache_web.php is protected by a secret key. This secret key is used internally by cli/check_opcache.php to call cli/check_opcache_web.php. Without submitting the correct secret key to cli/check_opcache_web.php, cli/check_opcache_web.php will not return any values.
 
-To enable the security mechanism, please add this setting to your config.php file and set this setting to an alphanumeric string of your choice:
+To enable the Nagios check, please add this setting to your config.php file:
+```
+$CFG->tool_opcache_check_enabled = true;
+```
+
+The secret key is then generated automatically when cli/check_opcache.php is run for the first time and it is stored in the plugin configuration in the Moodle database.
+
+If you prefer to set the secret key yourself, for example to keep it out of the Moodle database, please add this setting to your config.php file and set this setting to an alphanumeric string of your choice:
 ```
 $CFG->tool_opcache_check_secretkey = 'P3ethed8yCrAYfshzUTsGVKwedwfNZE89o3L6JZqHKMa';
 ```
 
+For backwards compatibility, setting this secret key in config.php also enables the Nagios check, even without the $CFG->tool_opcache_check_enabled setting.
 
-Example usage:
+
+Example usage (run from the Moodle root directory):
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php --url=\"https://example.com/admin/tool/opcache/cli/check_opcache_web.php\" --warning=80 --critical=90
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/check_opcache.php --url="https://example.com/admin/tool/opcache/cli/check_opcache_web.php" --warning=80 --critical=90
 ```
 
 For more information about the usage run:
 ```
-sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php --help
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/check_opcache.php --help
 ```
 
 The CLI script will return a string similar to:

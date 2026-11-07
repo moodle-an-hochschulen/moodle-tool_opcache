@@ -28,6 +28,7 @@ define('CLI_SCRIPT', true);
 require(__DIR__ . '/../../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/filelib.php');
+require_once(__DIR__ . '/../locallib.php');
 
 
 // Get cli options.
@@ -62,11 +63,18 @@ Options:
 -c, --critical  Threshold for critical (Default: 90)
 -h, --help      Print out this help
 
-Example:
-\$ sudo -u www-data /usr/bin/php admin/tool/cli/check_opcache.php " .
+Example (run from the Moodle root directory):
+\$ sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/check_opcache.php " .
         "--url=\"https://example.com/admin/tool/opcache/cli/check_opcache_web.php\" --warning=75 --critical=85
 ";
     cli_writeln($help);
+    exit($returnstatus);
+}
+
+
+// Die if the Nagios check is not enabled.
+if (!tool_opcache_is_cli_tool_enabled('check')) {
+    cli_writeln('UNKNOWN - The Nagios check is not enabled in config.php. See README.md for details.');
     exit($returnstatus);
 }
 
@@ -75,6 +83,12 @@ Example:
 $options['url'] = clean_param($options['url'], PARAM_URL);
 $options['warning'] = clean_param($options['warning'], PARAM_INT);
 $options['critical'] = clean_param($options['critical'], PARAM_INT);
+
+// Die if the thresholds do not make sense.
+if ($options['warning'] > $options['critical']) {
+    cli_writeln('UNKNOWN - The threshold for warning must not be greater than the threshold for critical.');
+    exit($returnstatus);
+}
 
 
 // Fetch Opcache figures from webserver.
@@ -88,50 +102,20 @@ $curloptions = [
     'HEADER' => false,
     'CONNECTTIMEOUT' => 5,
 ];
-$params = [];
-if (isset($CFG->tool_opcache_check_secretkey)) {
-    $params['secret'] = $CFG->tool_opcache_check_secretkey;
-}
+$params = ['secret' => tool_opcache_get_secretkey('check', true)];
 $curlret = $curl->get($options['url'], $params, $curloptions);
 
-// Die if secret key was required but not correct (basically, this should not happen).
-if ($curlret == 'FORBIDDEN') {
-    $returnstatus = 2;
-    $out = 'Secret key is required but is not correct.';
-}
-
-// Pick Opcache figures.
-$figures = explode(PHP_EOL, $curlret);
-$used = clean_param($figures[0], PARAM_INT);
-$free = clean_param($figures[1], PARAM_INT);
-$hitspct = clean_param($figures[2], PARAM_FLOAT);
-$misspct = clean_param($figures[3], PARAM_FLOAT);
-
-
-// Calculate used percentage value.
-$usedpct = round($used / ($used + $free) * 100, 1);
-// Calculate return status.
-if ($usedpct >= $options['critical']) {
-    $returnstatus = 2;
-} else if ($usedpct >= $options['warning']) {
-    $returnstatus = 1;
-} else {
-    $returnstatus = 0;
-}
-
-// Concatenate return string including performance data.
-$out = $usedpct . "% cache used | " .
-        "used_pct=" . $usedpct . "%;" . $options['warning'] . ";" . $options['critical'] . " hit_pct=" . $hitspct .
-                "%; miss_pct=" . $misspct . "%;";
+// Evaluate the response of the webserver.
+[$returnstatus, $out] = tool_opcache_evaluate_check_response(
+    $curlret,
+    $curl->get_errno(),
+    (string) $curl->error,
+    $options['warning'],
+    $options['critical']
+);
 
 // Echo return string.
-if ($returnstatus == 0) {
-    cli_writeln('OK - ' . $out);
-} else if ($returnstatus == 1) {
-    cli_writeln('WARNING - ' . $out);
-} else {
-    cli_writeln('CRITICAL - ' . $out);
-}
+cli_writeln($out);
 
 // Exit with calculated return status.
 exit($returnstatus);

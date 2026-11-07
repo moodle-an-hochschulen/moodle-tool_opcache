@@ -4,6 +4,21 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-06 - Improvement: Let the Nagios check report an UNKNOWN status if the threshold for warning is greater than the threshold for critical.
+* 2026-11-06 - Improvement: Let the web parts of the Nagios check and the CLI tool to reset PHP opcache run without a Moodle session (NO_MOODLE_COOKIES). Until now, each call of a web part created a new Moodle session as its CLI part does not send any cookies.
+* 2026-11-06 - Improvement: Let the web part of the Nagios check fetch the Opcache status without the list of all cached scripts as only the memory and statistics figures are needed. This reduces the load of each Nagios check on webservers with many cached scripts.
+* 2026-11-06 - Bugfix: Fix the paths and the quoting of the example calls of the CLI tools in README.md and in the CLI help output and add the missing parameters to the example call in the help output of the CLI tool to reset PHP opcache.
+* 2026-11-06 - Bugfix: Let the web parts of the Nagios check and the CLI tool to reset PHP opcache return a proper response instead of throwing PHP warnings and errors if Opcache is not available on the webserver (extension not loaded, Opcache disabled or API access restricted) or if Opcache has not counted any requests yet. The Nagios check reports an unavailable Opcache as UNKNOWN, the CLI tool to reset PHP opcache reports a missing Opcache extension with a dedicated error message. The evaluation of the response of the web part has been moved to a helper function, including PHPUnit tests.
+* 2026-11-06 - Bugfix: Let the Nagios check report a proper status instead of crashing with a division by zero if the webserver returned an unexpected response. A wrong secret key is now reported as CRITICAL, an unreachable webserver or a response without valid Opcache figures (for example an error page or a webserver with disabled Opcache) is reported as UNKNOWN.
+* 2026-11-06 - Documentation: Remove the privacy note in README.md which claimed that the OPcache GUI loads JavaScript libraries from the unpkg.com CDN. The bundled OPcache GUI is a CDN-less build and does not fetch any resources from third-party servers.
+* 2026-11-04 - Improvement: Disable the Nagios check and the CLI tool to reset PHP opcache by default. They have to be enabled with a setting in config.php (or in the Moodle database) now and their web parts are always protected by a secret key which is generated automatically if it is not set in config.php (or in the Moodle database). For backwards compatibility, setting a secret key still enables the particular tool as well.
+               Please note: Up to now, the Nagios check was enabled by default and the secret key was optional. If you have used the Nagios check without a secret key until now, you have to enable it now by adding $CFG->tool_opcache_check_enabled = true; to config.php after upgrading the plugin. Otherwise, the Nagios check will report an UNKNOWN status. If you have already set a secret key in config.php for the Nagios check or the CLI tool to reset PHP opcache, you do not have to change anything as the secret key still enables the particular tool. Please see README.md for details.
+* 2026-11-04 - Bugfix: Compare the secret keys of the web parts of the Nagios check and the CLI tool to reset PHP opcache with hash_equals(). Until now, a numeric secret key could be matched by a different numeric string (like '1e3' for '1000').
+* 2026-11-04 - Bugfix: Fix the file name of the web part of the Nagios check in README.md.
+* 2026-11-03 - Improvement: Protect the write operations of the Opcache GUI (resetting the cache and invalidating files) against cross-site request forgery with a sesskey check, including PHPUnit and Behat tests.
+
 ### v5.3-r1
 
 * 2026-10-20 - Upgrade: Adapt the OPcache GUI colours to the Boost dark colour mode.

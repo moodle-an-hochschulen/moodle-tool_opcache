@@ -22,27 +22,33 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-// phpcs:disable
-// Let codechecker ignore this file because otherwise it would complain about a missing MOODLE_INTERNAL check or config.php
-// inclusion which is really not needed.
+// Do not start a Moodle session as the web part is called without any cookies by its CLI part.
+// Otherwise, a new session would be created with each call.
+define('NO_MOODLE_COOKIES', true);
 
-require(__DIR__.'/../../../../config.php');
+require(__DIR__ . '/../../../../config.php');
+require_once(__DIR__ . '/../locallib.php');
 
-global $CFG, $PAGE;
-
-// Die if resetting opcache is not actively enabled.
-if (!isset($CFG->tool_opcache_reset_secretkey)) {
+// Die if resetting opcache is not enabled.
+if (!tool_opcache_is_cli_tool_enabled('reset')) {
     echo 1;
     exit;
 
     // And die if the submitted secret key is not correct.
-} else if ($CFG->tool_opcache_reset_secretkey != clean_param($PAGE->url->get_param('secret'), PARAM_ALPHANUM)) {
+} else if (!tool_opcache_check_secretkey('reset', optional_param('secret', '', PARAM_ALPHANUM))) {
     echo 2;
     exit;
 }
 
+// Die if the Opcache extension is not loaded on the webserver.
+if (!function_exists('opcache_reset')) {
+    echo 3;
+    exit;
+}
+
 // Reset opcache.
-$retval = opcache_reset();
+// This fails if Opcache is disabled or if the API access is restricted on the webserver.
+$retval = @opcache_reset();
 
 // Echo exit status.
 if ($retval == true) {
