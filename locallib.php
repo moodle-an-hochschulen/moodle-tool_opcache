@@ -215,6 +215,28 @@ function tool_opcache_check_secretkey($tool, $submittedsecretkey) {
 }
 
 /**
+ * Helper function to get the curl options which are used by the CLI tools to call their web parts.
+ *
+ * The TLS certificate of the webserver is verified by default as the secret key is submitted with the request.
+ * Moodle core's curl class does not verify the TLS certificate unless this is requested explicitly.
+ *
+ * @param bool $insecure If true, the TLS certificate of the webserver is not verified
+ *                       (for example for webservers with a self-signed certificate).
+ *
+ * @return array The curl options.
+ */
+function tool_opcache_get_curl_options($insecure = false) {
+    return [
+        'FRESH_CONNECT' => true,
+        'RETURNTRANSFER' => true,
+        'FORBID_REUSE' => true,
+        'HEADER' => false,
+        'CONNECTTIMEOUT' => 5,
+        'SSL_VERIFYPEER' => !$insecure,
+    ];
+}
+
+/**
  * Helper function to evaluate the response of the web part of the Nagios check.
  *
  * @param string|bool $response The response of the web part of the Nagios check.
