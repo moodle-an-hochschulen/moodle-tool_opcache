@@ -179,6 +179,20 @@ OK - 28.5% cache used | used_pct=28.5%;80;90 hit_pct=72.95%; miss_pct=27.05%;
 ```
 
 
+TLS certificate verification
+----------------------------
+
+If you provide a https URL to cli/reset_opcache.php or cli/check_opcache.php, the CLI script verifies the TLS certificate of the webserver before it submits the secret key to its web part.
+
+If the webserver uses a self-signed certificate or a certificate from a private CA, the verification will fail. In this case, cli/reset_opcache.php will fail with a curl error and cli/check_opcache.php will report an UNKNOWN status with a curl error.
+
+To solve this, either add your CA to the CA bundle which is used by PHP (curl.cainfo in php.ini) or, if you accept that the secret key could be captured by an attacker who is able to intercept the connection, switch the verification off by adding the --insecure option:
+```
+sudo -u www-data /usr/bin/php admin/tool/opcache/cli/reset_opcache.php --url="https://example.com/admin/tool/opcache/cli/reset_opcache_web.php" --reset --insecure
+sudo -u www-data /usr/bin/php admin/tool/opcache/cli/check_opcache.php --url="https://example.com/admin/tool/opcache/cli/check_opcache_web.php" --warning=80 --critical=90 --insecure
+```
+
+
 Theme support
 -------------
 
