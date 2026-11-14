@@ -232,7 +232,74 @@ function tool_opcache_get_curl_options($insecure = false) {
         'FORBID_REUSE' => true,
         'HEADER' => false,
         'CONNECTTIMEOUT' => 5,
+        // Redirects must not be followed. Moodle core's curl class follows redirects by default and repeats a POST request
+        // including its POST fields (i.e. the secret key) on the redirect target for all redirects but HTTP 303.
+        // With this option, the request ends at the first redirect, which is then reported as an error.
+        'FOLLOWLOCATION' => false,
         'SSL_VERIFYPEER' => !$insecure,
+    ];
+}
+
+/**
+ * Helper function to get an error message if the webserver has redirected the request of a CLI tool to its web part.
+ *
+ * The CLI tools submit the secret key as POST parameter and do not follow any redirects (see tool_opcache_get_curl_options())
+ * as the secret key must not be sent to another URL than the given one. The most common reason for a redirect is that
+ * the given URL does not match $CFG->wwwroot, in which case Moodle redirects the request to the wwwroot URL.
+ *
+ * @param array $curlinfo The curl info of the request to the web part (as returned by curl::get_info()).
+ *
+ * @return string The error message or an empty string if the request was not redirected.
+ */
+function tool_opcache_get_redirect_error($curlinfo) {
+    // If the webserver did not answer with a redirect, there is nothing to complain about.
+    $httpcode = (int) ($curlinfo['http_code'] ?? 0);
+    if ($httpcode < 300 || $httpcode >= 400) {
+        return '';
+    }
+
+    // Compose the error message, including the redirect target if it is known.
+    $target = '';
+    if (!empty($curlinfo['redirect_url'])) {
+        $target = ' to ' . $curlinfo['redirect_url'];
+    }
+    return 'The webserver redirected the request' . $target . ' (HTTP ' . $httpcode . ') instead of answering it. ' .
+            'Please provide the URL of the web part exactly as it is served by Moodle, i.e. matching $CFG->wwwroot.';
+}
+
+/**
+ * Helper function to let the given CLI tool call its web part.
+ *
+ * The secret key is submitted as POST parameter to keep it out of the URL and thus out of the webserver and proxy logs.
+ *
+ * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
+ * @param string $url The URL of the web part of the CLI tool.
+ * @param bool $insecure If true, the TLS certificate of the webserver is not verified.
+ * @param curl|null $curl The curl object to be used for the request (only to be set by unit tests).
+ *
+ * @return array An array with the response of the web part, the curl error number (0 if there wasn't any error),
+ *               the curl error message and the redirect error message (an empty string if the request was not redirected).
+ */
+function tool_opcache_call_web_part($tool, $url, $insecure = false, $curl = null) {
+    global $CFG;
+
+    require_once($CFG->libdir . '/filelib.php');
+
+    // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is ignored by purpose.
+    // Otherwise, $CFG->curlsecurityblockedhosts might prevent that the web part of the CLI tool is fetched.
+    if ($curl === null) {
+        $curl = new curl(['ignoresecurity' => true]);
+    }
+
+    // Call the web part.
+    $params = ['secret' => tool_opcache_get_secretkey($tool, true)];
+    $response = $curl->post($url, $params, tool_opcache_get_curl_options($insecure));
+
+    return [
+        $response,
+        (int) $curl->get_errno(),
+        (string) $curl->error,
+        tool_opcache_get_redirect_error((array) $curl->get_info()),
     ];
 }
 
