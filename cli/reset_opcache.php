@@ -79,16 +79,20 @@ $options['url'] = clean_param($options['url'], PARAM_URL);
 
 
 // Reset opcache on webserver.
-$curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
-                                                   // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
-                                                   // that the web part of this CLI tool is fetched.
-$curloptions = tool_opcache_get_curl_options((bool) $options['insecure']);
-$params = ['secret' => tool_opcache_get_secretkey('reset', true)];
-$curlret = $curl->get($options['url'], $params, $curloptions);
+[$curlret, $curlerrno, $curlerror, $redirecterror] = tool_opcache_call_web_part(
+    'reset',
+    $options['url'],
+    (bool) $options['insecure']
+);
 
 // Die if the webserver could not be reached.
-if ($curl->get_errno()) {
-    cli_error('PHP opcache could not be reset as requested. The webserver could not be reached: ' . $curl->error);
+if ($curlerrno) {
+    cli_error('PHP opcache could not be reset as requested. The webserver could not be reached: ' . $curlerror);
+}
+
+// Die if the webserver redirected the request (for example because the given URL does not match $CFG->wwwroot).
+if ($redirecterror !== '') {
+    cli_error('PHP opcache could not be reset as requested. ' . $redirecterror);
 }
 
 // Echo return string and exit with return status.
