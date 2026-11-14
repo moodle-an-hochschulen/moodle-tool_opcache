@@ -96,18 +96,23 @@ if ($options['warning'] > $options['critical']) {
 
 
 // Fetch Opcache figures from webserver.
-$curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
-                                                   // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
-                                                   // that the web part of this CLI tool is fetched.
-$curloptions = tool_opcache_get_curl_options((bool) $options['insecure']);
-$params = ['secret' => tool_opcache_get_secretkey('check', true)];
-$curlret = $curl->get($options['url'], $params, $curloptions);
+[$curlret, $curlerrno, $curlerror, $redirecterror] = tool_opcache_call_web_part(
+    'check',
+    $options['url'],
+    (bool) $options['insecure']
+);
+
+// Die if the webserver redirected the request (for example because the given URL does not match $CFG->wwwroot).
+if ($redirecterror !== '') {
+    cli_writeln('UNKNOWN - ' . $redirecterror);
+    exit(3);
+}
 
 // Evaluate the response of the webserver.
 [$returnstatus, $out] = tool_opcache_evaluate_check_response(
     $curlret,
-    $curl->get_errno(),
-    (string) $curl->error,
+    $curlerrno,
+    $curlerror,
     $options['warning'],
     $options['critical']
 );
