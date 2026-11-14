@@ -36,11 +36,13 @@ require_once(__DIR__ . '/../locallib.php');
     ['help' => false,
                                                     'url' => null,
                                                     'warning' => 80,
-                                                    'critical' => 90, ],
+                                                    'critical' => 90,
+                                                    'insecure' => false, ],
     ['h' => 'help',
                                                     'u' => 'url',
                                                     'w' => 'warning',
     'c' => 'critical',
+    'k' => 'insecure',
     ]
 );
 if ($unrecognized) {
@@ -61,6 +63,8 @@ Options:
 -u, --url       Full URL to check_opcache_web.php
 -w, --warning   Threshold for warning (Default: 80)
 -c, --critical  Threshold for critical (Default: 90)
+-k, --insecure  Do not verify the TLS certificate of the webserver
+                (for example if it uses a self-signed certificate)
 -h, --help      Print out this help
 
 Example (run from the Moodle root directory):
@@ -95,13 +99,7 @@ if ($options['warning'] > $options['critical']) {
 $curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
                                                    // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
                                                    // that the web part of this CLI tool is fetched.
-$curloptions = [
-    'FRESH_CONNECT' => true,
-    'RETURNTRANSFER' => true,
-    'FORBID_REUSE' => true,
-    'HEADER' => false,
-    'CONNECTTIMEOUT' => 5,
-];
+$curloptions = tool_opcache_get_curl_options((bool) $options['insecure']);
 $params = ['secret' => tool_opcache_get_secretkey('check', true)];
 $curlret = $curl->get($options['url'], $params, $curloptions);
 

@@ -34,10 +34,12 @@ require_once(__DIR__ . '/../locallib.php');
 [$options, $unrecognized] = cli_get_params(
     ['help' => false,
                                                     'url' => null,
-                                                    'reset' => false, ],
+                                                    'reset' => false,
+                                                    'insecure' => false, ],
     ['h' => 'help',
                                                     'u' => 'url',
     'r' => 'reset',
+    'k' => 'insecure',
     ]
 );
 if ($unrecognized) {
@@ -53,6 +55,8 @@ if ($options['help'] || !($options['url']) || !($options['reset'])) {
 Options:
 -u, --url       Full URL to reset_opcache_web.php
 -r, --reset     Reset PHP opcache on this server
+-k, --insecure  Do not verify the TLS certificate of the webserver
+                (for example if it uses a self-signed certificate)
 -h, --help      Print out this help
 
 Example (run from the Moodle root directory):
@@ -78,13 +82,7 @@ $options['url'] = clean_param($options['url'], PARAM_URL);
 $curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
                                                    // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
                                                    // that the web part of this CLI tool is fetched.
-$curloptions = [
-        'FRESH_CONNECT' => true,
-        'RETURNTRANSFER' => true,
-        'FORBID_REUSE' => true,
-        'HEADER' => false,
-        'CONNECTTIMEOUT' => 5,
-];
+$curloptions = tool_opcache_get_curl_options((bool) $options['insecure']);
 $params = ['secret' => tool_opcache_get_secretkey('reset', true)];
 $curlret = $curl->get($options['url'], $params, $curloptions);
 

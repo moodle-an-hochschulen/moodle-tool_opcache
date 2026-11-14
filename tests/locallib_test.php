@@ -405,6 +405,20 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
+     * Test that the curl options of the CLI tools verify the TLS certificate of the webserver unless this is switched off.
+     *
+     * @covers ::tool_opcache_get_curl_options
+     */
+    public function test_get_curl_options(): void {
+        // The TLS certificate is verified by default.
+        $this->assertTrue(tool_opcache_get_curl_options()['SSL_VERIFYPEER']);
+        $this->assertTrue(tool_opcache_get_curl_options(false)['SSL_VERIFYPEER']);
+
+        // The TLS certificate is not verified if this is requested explicitly.
+        $this->assertFalse(tool_opcache_get_curl_options(true)['SSL_VERIFYPEER']);
+    }
+
+    /**
      * Data provider for test_check_secretkey().
      *
      * @return array
