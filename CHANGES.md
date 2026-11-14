@@ -4,6 +4,11 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-14 - Improvement: Let the Nagios check and the CLI tool to reset PHP opcache verify the TLS certificate of the webserver when they call their web parts with a https URL. Until now, the certificate was not verified (which is the default of Moodle core's curl class) and the secret key could have been captured by an attacker who is able to intercept the connection.\
+               Please note: If the URL which you pass to the CLI tools points to a webserver with a self-signed certificate or with a certificate from a private CA, the CLI tools will fail with a curl error after upgrading the plugin. In this case, either add your CA to the CA bundle which is used by PHP (curl.cainfo in php.ini) or call the CLI tools with the new --insecure option to switch the verification off again. Please see README.md for details.
+
 ### v5.1-r3
 
 * 2026-11-06 - Improvement: Let the Nagios check report an UNKNOWN status if the threshold for warning is greater than the threshold for critical.
