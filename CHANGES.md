@@ -6,6 +6,8 @@ Changes
 
 ### Unreleased
 
+* 2026-11-22 - Improvement: Deny direct requests to the Opcache GUI library file with a .htaccess file on Apache webservers which process .htaccess files, credits to Mark Sharp.
+* 2026-11-22 - Improvement: Let the Opcache GUI library file refuse to run if it is not included by Moodle. Until now, on webservers which are configured to interpret *.inc files as PHP, an anonymous user could have run the Opcache GUI by requesting the library file directly, circumventing Moodle's access control and sesskey check. This is prevented now regardless of the webserver configuration, including a PHPUnit test.
 * 2026-11-22 - Improvement: Add a --verbose option to the Nagios check and the CLI tool to reset PHP opcache which prints verbose information about the request to the web part to STDERR, credits to Guillermo Fernández.
 * 2026-11-22 - Improvement: Add a --domain option to the Nagios check and the CLI tool to reset PHP opcache which sends the given hostname as Host header to the webserver. This allows to call a webserver directly with its IP address or internal hostname, for example behind a reverse proxy, without being redirected to the wwwroot URL, credits to Guillermo Fernández.
 * 2026-11-22 - Improvement: Let the --insecure option of the Nagios check and the CLI tool to reset PHP opcache switch off the verification of the hostname of the TLS certificate as well. Until now, a certificate which did not match the hostname in the URL was still refused with this option, credits to Guillermo Fernández.
