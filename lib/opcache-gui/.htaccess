@@ -1,0 +1,7 @@
+# The Opcache-GUI library must not be requested directly by a browser.
+# It is only included by ../../index.php after Moodle's access control.
+<IfModule mod_authz_core.c>
+    <Files "index.php.inc">
+        Require all denied
+    </Files>
+</IfModule>
