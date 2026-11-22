@@ -184,6 +184,49 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
+     * Test that the bundled Opcache GUI library refuses to run if it is not included by Moodle.
+     *
+     * The guard is a local modification of the library file which has to be re-added after each update of the library.
+     * This test makes sure that it is not forgotten and that no other code is run before it.
+     *
+     * @coversNothing
+     */
+    public function test_bundled_gui_is_guarded(): void {
+        global $CFG;
+
+        $librarydir = $CFG->dirroot . '/' . $CFG->admin . '/tool/opcache/lib/opcache-gui';
+
+        // Run the library file directly in a separate PHP process, i.e. without Moodle, like a webserver would do
+        // which interprets *.inc files as PHP. The file must die silently without any output.
+        // Without the guard, it would output the Opcache GUI or at least a message that Opcache is not available.
+        $output = [];
+        $exitcode = null;
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($librarydir . '/index.php.inc') . ' 2>&1', $output, $exitcode);
+        $this->assertSame(0, $exitcode);
+        $this->assertSame('', implode("\n", $output));
+
+        // Additionally, make sure that the guard is the very first statement of the library file so that no other code
+        // (which might not output anything) is run before it. To do this, collect the code of the library file up to
+        // the end of its first statement, skipping the opening tag, whitespace and comments.
+        $firststatement = '';
+        foreach (token_get_all(file_get_contents($librarydir . '/index.php.inc')) as $token) {
+            if (is_array($token) && in_array($token[0], [T_OPEN_TAG, T_WHITESPACE, T_COMMENT, T_DOC_COMMENT])) {
+                continue;
+            }
+            $firststatement .= is_array($token) ? $token[1] : $token;
+            if ($token === ';') {
+                break;
+            }
+        }
+        $this->assertSame("defined('MOODLE_INTERNAL')||die();", $firststatement);
+
+        // As a second line of defence, the .htaccess file must deny direct requests to the library file.
+        $htaccess = file_get_contents($librarydir . '/.htaccess');
+        $this->assertStringContainsString('<Files "index.php.inc">', $htaccess);
+        $this->assertStringContainsString('Require all denied', $htaccess);
+    }
+
+    /**
      * Data provider for test_is_cli_tool_enabled().
      *
      * @return array
