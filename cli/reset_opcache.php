@@ -35,11 +35,15 @@ require_once(__DIR__ . '/../locallib.php');
     ['help' => false,
                                                     'url' => null,
                                                     'reset' => false,
-                                                    'insecure' => false, ],
+                                                    'insecure' => false,
+                                                    'domain' => null,
+                                                    'verbose' => false, ],
     ['h' => 'help',
                                                     'u' => 'url',
     'r' => 'reset',
     'k' => 'insecure',
+    'd' => 'domain',
+    'v' => 'verbose',
     ]
 );
 if ($unrecognized) {
@@ -56,7 +60,13 @@ Options:
 -u, --url       Full URL to reset_opcache_web.php
 -r, --reset     Reset PHP opcache on this server
 -k, --insecure  Do not verify the TLS certificate of the webserver
-                (for example if it uses a self-signed certificate)
+                (for example if it uses a self-signed certificate
+                or if its certificate does not match the hostname in the URL)
+-d, --domain    Hostname which is sent as Host header to the webserver
+                (for example if the URL contains an IP address
+                instead of the hostname of the Moodle site),
+                optionally with a port (example.com:8443)
+-v, --verbose   Print verbose information about the request to STDERR
 -h, --help      Print out this help
 
 Example (run from the Moodle root directory):
@@ -77,12 +87,19 @@ if (!tool_opcache_is_cli_tool_enabled('reset')) {
 // Clean CLI parameters.
 $options['url'] = clean_param($options['url'], PARAM_URL);
 
+// Die if the domain is not a valid hostname.
+if (tool_opcache_get_host_header($options['domain']) === false) {
+    cli_error('The domain must be a plain hostname or IP address (optionally with a port) without protocol and path.');
+}
+
 
 // Reset opcache on webserver.
 [$curlret, $curlerrno, $curlerror, $redirecterror] = tool_opcache_call_web_part(
     'reset',
     $options['url'],
-    (bool) $options['insecure']
+    (bool) $options['insecure'],
+    trim((string) $options['domain']),
+    (bool) $options['verbose']
 );
 
 // Die if the webserver could not be reached.
