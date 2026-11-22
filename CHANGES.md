@@ -4,6 +4,18 @@ moodle-tool_opcache
 Changes
 -------
 
+### Unreleased
+
+* 2026-11-22 - Improvement: Deny direct requests to the Opcache GUI library file with a .htaccess file on Apache webservers which process .htaccess files, credits to Mark Sharp.
+* 2026-11-22 - Improvement: Let the Opcache GUI library file refuse to run if it is not included by Moodle. Until now, on webservers which are configured to interpret *.inc files as PHP, an anonymous user could have run the Opcache GUI by requesting the library file directly, circumventing Moodle's access control and sesskey check. This is prevented now regardless of the webserver configuration, including a PHPUnit test.
+* 2026-11-22 - Improvement: Add a --verbose option to the Nagios check and the CLI tool to reset PHP opcache which prints verbose information about the request to the web part to STDERR, credits to Guillermo Fernández.
+* 2026-11-22 - Improvement: Add a --domain option to the Nagios check and the CLI tool to reset PHP opcache which sends the given hostname as Host header to the webserver. This allows to call a webserver directly with its IP address or internal hostname, for example behind a reverse proxy, without being redirected to the wwwroot URL, credits to Guillermo Fernández.
+* 2026-11-22 - Improvement: Let the --insecure option of the Nagios check and the CLI tool to reset PHP opcache switch off the verification of the hostname of the TLS certificate as well. Until now, a certificate which did not match the hostname in the URL was still refused with this option, credits to Guillermo Fernández.
+* 2026-11-14 - Improvement: Let the Nagios check and the CLI tool to reset PHP opcache submit the secret key to their web parts as POST parameter instead of as URL parameter. Until now, the secret key was part of the requested URL and could thus end up in the access logs of the webserver and of reverse proxies.\
+               Please note: The URL which you pass to the CLI tools has to match $CFG->wwwroot now. Until now, a URL with another hostname, port or protocol (for example http://localhost/...) worked as well as Moodle redirected the request including the secret key to the wwwroot URL. Such a redirect is not followed anymore and the CLI tools will fail with a corresponding error message after upgrading the plugin. In this case, please change the URL in your cronjobs and monitoring checks.
+* 2026-11-14 - Improvement: Let the Nagios check and the CLI tool to reset PHP opcache verify the TLS certificate of the webserver when they call their web parts with a https URL. Until now, the certificate was not verified (which is the default of Moodle core's curl class) and the secret key could have been captured by an attacker who is able to intercept the connection.\
+               Please note: If the URL which you pass to the CLI tools points to a webserver with a self-signed certificate or with a certificate from a private CA, the CLI tools will fail with a curl error after upgrading the plugin. In this case, either add your CA to the CA bundle which is used by PHP (curl.cainfo in php.ini) or call the CLI tools with the new --insecure option to switch the verification off again. Please see README.md for details.
+
 ### v5.3-r2
 
 * 2026-11-06 - Improvement: Let the Nagios check report an UNKNOWN status if the threshold for warning is greater than the threshold for critical.

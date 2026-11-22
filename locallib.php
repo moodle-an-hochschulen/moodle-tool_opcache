@@ -215,6 +215,159 @@ function tool_opcache_check_secretkey($tool, $submittedsecretkey) {
 }
 
 /**
+ * Helper function to get the curl options which are used by the CLI tools to call their web parts.
+ *
+ * The TLS certificate of the webserver is verified by default as the secret key is submitted with the request.
+ * Moodle core's curl class does not verify the TLS certificate unless this is requested explicitly.
+ *
+ * @param bool $insecure If true, the TLS certificate of the webserver is not verified at all, i.e. neither its trust chain
+ *                       nor its hostname (for example for webservers with a self-signed certificate or for webservers
+ *                       which are called with their IP address).
+ * @param bool $verbose If true, curl writes verbose information about the request to STDERR.
+ *
+ * @return array The curl options.
+ */
+function tool_opcache_get_curl_options($insecure = false, $verbose = false) {
+    $curloptions = [
+        'FRESH_CONNECT' => true,
+        'RETURNTRANSFER' => true,
+        'FORBID_REUSE' => true,
+        'HEADER' => false,
+        'CONNECTTIMEOUT' => 5,
+        // Redirects must not be followed. Moodle core's curl class follows redirects by default and repeats a POST request
+        // including its POST fields (i.e. the secret key) on the redirect target for all redirects but HTTP 303.
+        // With this option, the request ends at the first redirect, which is then reported as an error.
+        'FOLLOWLOCATION' => false,
+        'SSL_VERIFYPEER' => !$insecure,
+        // The hostname of the certificate is checked by curl independently from the trust chain of the certificate.
+        // Thus, it has to be switched off separately (2 means that the hostname must match, 0 means that it is not checked).
+        'SSL_VERIFYHOST' => $insecure ? 0 : 2,
+    ];
+
+    // The verbose option of curl is used here instead of the debug setting of Moodle core's curl class as the latter would
+    // dump the POST fields and thus the secret key. The verbose output of curl does not contain the request body.
+    if ($verbose) {
+        $curloptions['VERBOSE'] = true;
+    }
+
+    return $curloptions;
+}
+
+/**
+ * Helper function to get the Host header which the CLI tools send to their web parts if a domain was given.
+ *
+ * This is needed if the URL of the web part does not contain the hostname of $CFG->wwwroot, for example if the webserver
+ * is called directly with its IP address on a server which runs behind a reverse proxy. Without the Host header, Moodle
+ * would redirect such a request to the wwwroot URL.
+ *
+ * @param string|null $domain The domain which was given to the CLI tool (a hostname or an IP address,
+ *                            optionally followed by a colon and a port if $CFG->wwwroot contains a port).
+ *
+ * @return string|bool The Host header, an empty string if no domain was given or false if the given domain is invalid.
+ */
+function tool_opcache_get_host_header($domain) {
+    // If no domain was given, no Host header has to be sent.
+    $domain = trim((string) $domain);
+    if ($domain === '') {
+        return '';
+    }
+
+    // Let PHP split the domain into hostname and optional port. parse_url() fails for non-numeric ports and for ports
+    // above 65535. Refuse the domain as well if it contains anything else than a hostname and a port (like a path).
+    $parts = parse_url('//' . $domain);
+    if ($parts === false || empty($parts['host']) || array_diff_key($parts, ['host' => true, 'port' => true])) {
+        return false;
+    }
+
+    // Refuse anything which is not a plain hostname or IP address.
+    if (clean_param($parts['host'], PARAM_HOST) !== $parts['host']) {
+        return false;
+    }
+
+    // Compose the Host header and refuse the domain if it was not given in its plain form
+    // (which covers port 0, an empty port and a port with leading zeros).
+    $host = $parts['host'] . (isset($parts['port']) ? ':' . $parts['port'] : '');
+    if ($host !== $domain || (isset($parts['port']) && $parts['port'] < 1)) {
+        return false;
+    }
+
+    return 'Host: ' . $host;
+}
+
+/**
+ * Helper function to get an error message if the webserver has redirected the request of a CLI tool to its web part.
+ *
+ * The CLI tools submit the secret key as POST parameter and do not follow any redirects (see tool_opcache_get_curl_options())
+ * as the secret key must not be sent to another URL than the given one. The most common reason for a redirect is that
+ * the given URL does not match $CFG->wwwroot, in which case Moodle redirects the request to the wwwroot URL.
+ *
+ * @param array $curlinfo The curl info of the request to the web part (as returned by curl::get_info()).
+ *
+ * @return string The error message or an empty string if the request was not redirected.
+ */
+function tool_opcache_get_redirect_error($curlinfo) {
+    // If the webserver did not answer with a redirect, there is nothing to complain about.
+    $httpcode = (int) ($curlinfo['http_code'] ?? 0);
+    if ($httpcode < 300 || $httpcode >= 400) {
+        return '';
+    }
+
+    // Compose the error message, including the redirect target if it is known.
+    $target = '';
+    if (!empty($curlinfo['redirect_url'])) {
+        $target = ' to ' . $curlinfo['redirect_url'];
+    }
+    return 'The webserver redirected the request' . $target . ' (HTTP ' . $httpcode . ') instead of answering it. ' .
+            'Please provide the URL of the web part exactly as it is served by Moodle, i.e. matching $CFG->wwwroot, ' .
+            'or provide the hostname of $CFG->wwwroot with the --domain option.';
+}
+
+/**
+ * Helper function to let the given CLI tool call its web part.
+ *
+ * The secret key is submitted as POST parameter to keep it out of the URL and thus out of the webserver and proxy logs.
+ *
+ * @param string $tool The CLI tool, i.e. 'check' (Nagios check) or 'reset' (CLI tool to reset PHP opcache).
+ * @param string $url The URL of the web part of the CLI tool.
+ * @param bool $insecure If true, the TLS certificate of the webserver is not verified.
+ * @param string $domain The domain which is sent as Host header with the request (an empty string to not set the header).
+ *                       The domain must have been validated with tool_opcache_get_host_header() by the caller.
+ * @param bool $verbose If true, curl writes verbose information about the request to STDERR.
+ * @param curl|null $curl The curl object to be used for the request (only to be set by unit tests).
+ *
+ * @return array An array with the response of the web part, the curl error number (0 if there wasn't any error),
+ *               the curl error message and the redirect error message (an empty string if the request was not redirected).
+ */
+function tool_opcache_call_web_part($tool, $url, $insecure = false, $domain = '', $verbose = false, $curl = null) {
+    global $CFG;
+
+    require_once($CFG->libdir . '/filelib.php');
+
+    // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is ignored by purpose.
+    // Otherwise, $CFG->curlsecurityblockedhosts might prevent that the web part of the CLI tool is fetched.
+    if ($curl === null) {
+        $curl = new curl(['ignoresecurity' => true]);
+    }
+
+    // Send the given domain as Host header, if any.
+    $hostheader = tool_opcache_get_host_header($domain);
+    if (!empty($hostheader)) {
+        $curl->setHeader($hostheader);
+    }
+
+    // Call the web part.
+    $params = ['secret' => tool_opcache_get_secretkey($tool, true)];
+    $response = $curl->post($url, $params, tool_opcache_get_curl_options($insecure, $verbose));
+
+    return [
+        $response,
+        (int) $curl->get_errno(),
+        (string) $curl->error,
+        tool_opcache_get_redirect_error((array) $curl->get_info()),
+    ];
+}
+
+/**
  * Helper function to evaluate the response of the web part of the Nagios check.
  *
  * @param string|bool $response The response of the web part of the Nagios check.

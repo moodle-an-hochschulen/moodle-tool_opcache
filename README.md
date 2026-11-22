@@ -74,11 +74,9 @@ The Opcache-GUI which is used within this plugin is using ES6 Javascript code. I
 Security note
 -------------
 
-The Opcache-GUI was added as a library to this Moodle plugin and was renamed to /lib/opcache-gui/index.php.inc.
+The Opcache-GUI was added as a library to this Moodle plugin and was renamed to /lib/opcache-gui/index.php.inc. It is only run through the plugin's admin page, where access is controlled by Moodle's capability checks and where its write operations are protected with Moodle's sesskey.
 
-There is a potential for sensitive data leak, not personal data but data about the webserver's PHP configuration, if your webserver is configured to interpret *.inc files as PHP. An anonymous user could then visit the library's index page directly via https://yourmoodle.com/admin/tool/opcache/lib/opcache-gui/index.php.inc and would see the Opcache-GUI circumventing Moodle's access control.
-
-Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) or take any other measure that this file can not be accessed directly by a browser.
+The library file refuses to run if it is requested directly by a browser, and on Apache webservers a .htaccess file additionally denies such requests. On other webservers, a direct request might return the source code of the library file as plain text, which is not a problem as this code is publicly available anyway.
 
 
 CLI tool
@@ -176,6 +174,46 @@ sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/check_opcache.php --
 The CLI script will return a string similar to:
 ```
 OK - 28.5% cache used | used_pct=28.5%;80;90 hit_pct=72.95%; miss_pct=27.05%;
+```
+
+
+TLS certificate verification
+----------------------------
+
+If you provide a https URL to cli/reset_opcache.php or cli/check_opcache.php, the CLI script verifies the TLS certificate of the webserver before it submits the secret key to its web part.
+
+If the webserver uses a self-signed certificate or a certificate from a private CA, or if the certificate does not match the hostname in the URL, the verification will fail. In this case, cli/reset_opcache.php will fail with a curl error and cli/check_opcache.php will report an UNKNOWN status with a curl error.
+
+To solve this, either add your CA to the CA bundle which is used by PHP (curl.cainfo in php.ini) or, if you accept that the secret key could be captured by an attacker who is able to intercept the connection, switch the verification off by adding the --insecure option. With this option, neither the trust chain nor the hostname of the certificate is verified:
+```
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/reset_opcache.php --url="https://example.com/admin/tool/opcache/cli/reset_opcache_web.php" --reset --insecure
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/check_opcache.php --url="https://example.com/admin/tool/opcache/cli/check_opcache_web.php" --warning=80 --critical=90 --insecure
+```
+
+
+Calling the webserver directly behind a reverse proxy
+-----------------------------------------------------
+
+The URL which you provide to cli/reset_opcache.php or cli/check_opcache.php has to match $CFG->wwwroot. Otherwise, Moodle redirects the request to the wwwroot URL and the CLI script fails with a corresponding error message, as it does not submit the secret key to another URL than the given one.
+
+This is a problem if the CLI script has to call the local webserver directly instead of the public URL of the Moodle site, for example if Moodle runs behind a reverse proxy or a load balancer and you want to reset or check PHP Opcache of one particular webserver. In this case, provide the URL with the IP address or the internal hostname of the webserver and add the hostname of $CFG->wwwroot with the --domain option. The CLI script will then send this hostname as Host header to the webserver:
+```
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/reset_opcache.php --url="https://127.0.0.1/admin/tool/opcache/cli/reset_opcache_web.php" --domain=example.com --reset --insecure
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/check_opcache.php --url="https://127.0.0.1/admin/tool/opcache/cli/check_opcache_web.php" --domain=example.com --warning=80 --critical=90 --insecure
+```
+
+Please note:
+* The --domain option only accepts a plain hostname or IP address without protocol and path. If $CFG->wwwroot contains a port, you might have to add this port to the domain (for example --domain=example.com:8443), depending on how your webserver determines its server port.
+* The --insecure option is needed in this example as the TLS certificate of the webserver can't match the IP address in the URL. It is not needed if you provide a http URL or if the certificate matches the hostname in the URL.
+* The protocol of the URL still has to match the protocol of $CFG->wwwroot, unless $CFG->sslproxy is enabled in config.php.
+
+
+Debugging the CLI tools
+-----------------------
+
+If cli/reset_opcache.php or cli/check_opcache.php does not work as expected, add the --verbose option. The CLI script will then print verbose information about the request to its web part (connection, TLS handshake, request and response headers) to STDERR. The secret key is not part of this output.
+```
+sudo -u www-data /usr/bin/php public/admin/tool/opcache/cli/check_opcache.php --url="https://example.com/admin/tool/opcache/cli/check_opcache_web.php" --warning=80 --critical=90 --verbose
 ```
 
 

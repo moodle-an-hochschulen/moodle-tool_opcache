@@ -184,6 +184,49 @@ final class locallib_test extends \advanced_testcase {
     }
 
     /**
+     * Test that the bundled Opcache GUI library refuses to run if it is not included by Moodle.
+     *
+     * The guard is a local modification of the library file which has to be re-added after each update of the library.
+     * This test makes sure that it is not forgotten and that no other code is run before it.
+     *
+     * @coversNothing
+     */
+    public function test_bundled_gui_is_guarded(): void {
+        global $CFG;
+
+        $librarydir = $CFG->dirroot . '/' . $CFG->admin . '/tool/opcache/lib/opcache-gui';
+
+        // Run the library file directly in a separate PHP process, i.e. without Moodle, like a webserver would do
+        // which interprets *.inc files as PHP. The file must die silently without any output.
+        // Without the guard, it would output the Opcache GUI or at least a message that Opcache is not available.
+        $output = [];
+        $exitcode = null;
+        exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($librarydir . '/index.php.inc') . ' 2>&1', $output, $exitcode);
+        $this->assertSame(0, $exitcode);
+        $this->assertSame('', implode("\n", $output));
+
+        // Additionally, make sure that the guard is the very first statement of the library file so that no other code
+        // (which might not output anything) is run before it. To do this, collect the code of the library file up to
+        // the end of its first statement, skipping the opening tag, whitespace and comments.
+        $firststatement = '';
+        foreach (token_get_all(file_get_contents($librarydir . '/index.php.inc')) as $token) {
+            if (is_array($token) && in_array($token[0], [T_OPEN_TAG, T_WHITESPACE, T_COMMENT, T_DOC_COMMENT])) {
+                continue;
+            }
+            $firststatement .= is_array($token) ? $token[1] : $token;
+            if ($token === ';') {
+                break;
+            }
+        }
+        $this->assertSame("defined('MOODLE_INTERNAL')||die();", $firststatement);
+
+        // As a second line of defence, the .htaccess file must deny direct requests to the library file.
+        $htaccess = file_get_contents($librarydir . '/.htaccess');
+        $this->assertStringContainsString('<Files "index.php.inc">', $htaccess);
+        $this->assertStringContainsString('Require all denied', $htaccess);
+    }
+
+    /**
      * Data provider for test_is_cli_tool_enabled().
      *
      * @return array
@@ -402,6 +445,266 @@ final class locallib_test extends \advanced_testcase {
         // The secret key of the other CLI tool is not affected.
         $this->assertSame('', tool_opcache_get_secretkey('reset'));
         $this->assertNotSame($secretkey, tool_opcache_get_secretkey('reset', true));
+    }
+
+    /**
+     * Test that the curl options of the CLI tools verify the TLS certificate of the webserver unless this is switched off.
+     *
+     * @covers ::tool_opcache_get_curl_options
+     */
+    public function test_get_curl_options(): void {
+        // The TLS certificate is verified by default.
+        $this->assertTrue(tool_opcache_get_curl_options()['SSL_VERIFYPEER']);
+        $this->assertTrue(tool_opcache_get_curl_options(false)['SSL_VERIFYPEER']);
+
+        // The hostname of the TLS certificate is verified by default as well.
+        $this->assertSame(2, tool_opcache_get_curl_options()['SSL_VERIFYHOST']);
+        $this->assertSame(2, tool_opcache_get_curl_options(false)['SSL_VERIFYHOST']);
+
+        // Neither the TLS certificate nor its hostname is verified if this is requested explicitly.
+        $this->assertFalse(tool_opcache_get_curl_options(true)['SSL_VERIFYPEER']);
+        $this->assertSame(0, tool_opcache_get_curl_options(true)['SSL_VERIFYHOST']);
+
+        // Redirects are never followed, regardless of the other options, as the secret key would be sent to the redirect target.
+        foreach ([[false, false], [true, false], [false, true], [true, true]] as [$insecure, $verbose]) {
+            $this->assertFalse(tool_opcache_get_curl_options($insecure, $verbose)['FOLLOWLOCATION']);
+        }
+
+        // The verbose option of curl is only set if this is requested explicitly.
+        $this->assertArrayNotHasKey('VERBOSE', tool_opcache_get_curl_options());
+        $this->assertArrayNotHasKey('VERBOSE', tool_opcache_get_curl_options(true, false));
+        $this->assertTrue(tool_opcache_get_curl_options(false, true)['VERBOSE']);
+
+        // The verbose option does not affect the verification of the TLS certificate.
+        $this->assertTrue(tool_opcache_get_curl_options(false, true)['SSL_VERIFYPEER']);
+        $this->assertSame(2, tool_opcache_get_curl_options(false, true)['SSL_VERIFYHOST']);
+    }
+
+    /**
+     * Data provider for test_get_host_header().
+     *
+     * @return array
+     */
+    public static function get_host_header_provider(): array {
+        return [
+            'no domain' => ['domain' => null, 'expected' => ''],
+            'empty domain' => ['domain' => '', 'expected' => ''],
+            'blank domain' => ['domain' => '  ', 'expected' => ''],
+            'hostname' => ['domain' => 'example.com', 'expected' => 'Host: example.com'],
+            'hostname with whitespace' => ['domain' => ' moodle.example.com ', 'expected' => 'Host: moodle.example.com'],
+            'IP address' => ['domain' => '127.0.0.1', 'expected' => 'Host: 127.0.0.1'],
+            'hostname with port' => ['domain' => 'example.com:8443', 'expected' => 'Host: example.com:8443'],
+            'IP address with port' => ['domain' => '127.0.0.1:80', 'expected' => 'Host: 127.0.0.1:80'],
+            'hostname with port out of range' => ['domain' => 'example.com:65536', 'expected' => false],
+            'hostname with port zero' => ['domain' => 'example.com:0', 'expected' => false],
+            'hostname with non-numeric port' => ['domain' => 'example.com:abc', 'expected' => false],
+            'hostname with empty port' => ['domain' => 'example.com:', 'expected' => false],
+            'hostname with port with leading zero' => ['domain' => 'example.com:080', 'expected' => false],
+            'hostname with query string' => ['domain' => 'example.com?x=1', 'expected' => false],
+            'hostname with user' => ['domain' => 'user@example.com', 'expected' => false],
+            'IPv6 address' => ['domain' => '[::1]:80', 'expected' => false],
+            'URL' => ['domain' => 'https://example.com', 'expected' => false],
+            'hostname with path' => ['domain' => 'example.com/moodle', 'expected' => false],
+            'header injection' => ['domain' => "example.com\r\nX-Evil: 1", 'expected' => false],
+        ];
+    }
+
+    /**
+     * Test that the Host header is only composed for valid domains.
+     *
+     * @dataProvider get_host_header_provider
+     * @covers ::tool_opcache_get_host_header
+     *
+     * @param string|null $domain The domain which was given to the CLI tool.
+     * @param string|bool $expected The expected Host header.
+     */
+    public function test_get_host_header($domain, $expected): void {
+        $this->assertSame($expected, tool_opcache_get_host_header($domain));
+    }
+
+    /**
+     * Test that the CLI tools send the given domain as Host header and pass the verbose option when they call their web parts.
+     *
+     * @covers ::tool_opcache_call_web_part
+     */
+    public function test_call_web_part_with_domain_and_verbose(): void {
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
+
+        $this->resetAfterTest();
+
+        $url = 'https://127.0.0.1/admin/tool/opcache/cli/check_opcache_web.php';
+        $this->set_config_php_setting('tool_opcache_check_secretkey', 'checksecretkey');
+
+        // With a domain, the Host header is set and the request still goes to the unchanged URL.
+        $curl = $this->createMock(\curl::class);
+        $curl->error = '';
+        $curl->expects($this->once())->method('setHeader')->with('Host: example.com');
+        $curl->expects($this->once())->method('post')
+            ->with($url, ['secret' => 'checksecretkey'], tool_opcache_get_curl_options(true, true))
+            ->willReturn("1\r\n2\r\n3\r\n4");
+        $curl->method('get_errno')->willReturn(0);
+        $curl->method('get_info')->willReturn(['http_code' => 200]);
+
+        $this->assertSame(
+            ["1\r\n2\r\n3\r\n4", 0, '', ''],
+            tool_opcache_call_web_part('check', $url, true, 'example.com', true, $curl)
+        );
+
+        // Without a domain or with an invalid domain, no Host header is set.
+        foreach (['', 'example.com/moodle'] as $domain) {
+            $curl = $this->createMock(\curl::class);
+            $curl->error = '';
+            $curl->expects($this->never())->method('setHeader');
+            $curl->expects($this->once())->method('post')
+                ->with($url, ['secret' => 'checksecretkey'], tool_opcache_get_curl_options(false, false))
+                ->willReturn("1\r\n2\r\n3\r\n4");
+            $curl->method('get_errno')->willReturn(0);
+            $curl->method('get_info')->willReturn(['http_code' => 200]);
+
+            tool_opcache_call_web_part('check', $url, false, $domain, false, $curl);
+        }
+    }
+
+    /**
+     * Test that the CLI tools submit their secret key as POST parameter and not as part of the URL when they call their web parts.
+     *
+     * @covers ::tool_opcache_call_web_part
+     */
+    public function test_call_web_part_submits_secretkey_with_post(): void {
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
+
+        $this->resetAfterTest();
+
+        $url = 'https://example.com/admin/tool/opcache/cli/check_opcache_web.php';
+        $this->set_config_php_setting('tool_opcache_check_secretkey', 'checksecretkey');
+        $this->set_config_php_setting('tool_opcache_reset_secretkey', 'resetsecretkey');
+
+        // The web part must be called exactly once with a POST request to the unchanged URL, with the secret key of the
+        // given CLI tool as POST parameter and with the curl options of the plugin. It must never be called with a GET request.
+        $curl = $this->createMock(\curl::class);
+        $curl->error = '';
+        $curl->expects($this->never())->method('get');
+        $curl->expects($this->once())->method('post')
+            ->with($url, ['secret' => 'checksecretkey'], tool_opcache_get_curl_options(false))
+            ->willReturn("1\r\n2\r\n3\r\n4");
+        $curl->method('get_errno')->willReturn(0);
+        $curl->method('get_info')->willReturn(['http_code' => 200]);
+
+        $this->assertSame(["1\r\n2\r\n3\r\n4", 0, '', ''], tool_opcache_call_web_part('check', $url, false, '', false, $curl));
+
+        // The same applies to the other CLI tool, to its own secret key and to the --insecure option.
+        $url = 'https://example.com/admin/tool/opcache/cli/reset_opcache_web.php';
+        $curl = $this->createMock(\curl::class);
+        $curl->error = '';
+        $curl->expects($this->never())->method('get');
+        $curl->expects($this->once())->method('post')
+            ->with($url, ['secret' => 'resetsecretkey'], tool_opcache_get_curl_options(true))
+            ->willReturn('0');
+        $curl->method('get_errno')->willReturn(0);
+        $curl->method('get_info')->willReturn(['http_code' => 200]);
+
+        $this->assertSame(['0', 0, '', ''], tool_opcache_call_web_part('reset', $url, true, '', false, $curl));
+    }
+
+    /**
+     * Test that curl errors and redirects are reported when the CLI tools call their web parts.
+     *
+     * @covers ::tool_opcache_call_web_part
+     * @covers ::tool_opcache_get_redirect_error
+     */
+    public function test_call_web_part_reports_errors(): void {
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
+
+        $this->resetAfterTest();
+
+        $url = 'http://localhost/admin/tool/opcache/cli/check_opcache_web.php';
+        $this->set_config_php_setting('tool_opcache_check_secretkey', 'checksecretkey');
+
+        // A curl error is passed through.
+        $curl = $this->createMock(\curl::class);
+        $curl->error = 'Could not resolve host';
+        $curl->method('post')->willReturn('Could not resolve host');
+        $curl->method('get_errno')->willReturn(6);
+        $curl->method('get_info')->willReturn(['http_code' => 0]);
+
+        [, $curlerrno, $curlerror, $redirecterror] = tool_opcache_call_web_part('check', $url, false, '', false, $curl);
+        $this->assertSame(6, $curlerrno);
+        $this->assertSame('Could not resolve host', $curlerror);
+        $this->assertSame('', $redirecterror);
+
+        // A redirect (which is not followed for the POST request) is reported and the request is not repeated.
+        $curl = $this->createMock(\curl::class);
+        $curl->error = '';
+        $curl->expects($this->once())->method('post')->willReturn('');
+        $curl->method('get_errno')->willReturn(0);
+        $curl->method('get_info')->willReturn([
+            'http_code' => 303,
+            'redirect_url' => 'https://example.com/admin/tool/opcache/cli/check_opcache_web.php',
+        ]);
+
+        [, $curlerrno, , $redirecterror] = tool_opcache_call_web_part('check', $url, false, '', false, $curl);
+        $this->assertSame(0, $curlerrno);
+        $this->assertStringContainsString(
+            'redirected the request to https://example.com/admin/tool/opcache/cli/check_opcache_web.php (HTTP 303)',
+            $redirecterror
+        );
+    }
+
+    /**
+     * Data provider for test_get_redirect_error().
+     *
+     * @return array
+     */
+    public static function get_redirect_error_provider(): array {
+        return [
+            'answered request' => [
+                'curlinfo' => ['http_code' => 200, 'redirect_url' => ''],
+                'expected' => null,
+            ],
+            'failed request without any HTTP status' => [
+                'curlinfo' => ['http_code' => 0],
+                'expected' => null,
+            ],
+            'empty curl info' => [
+                'curlinfo' => [],
+                'expected' => null,
+            ],
+            'client error' => [
+                'curlinfo' => ['http_code' => 404],
+                'expected' => null,
+            ],
+            'redirect to the wwwroot URL' => [
+                'curlinfo' => ['http_code' => 303, 'redirect_url' => 'https://example.com/admin/tool/opcache/cli/x.php'],
+                'expected' => 'redirected the request to https://example.com/admin/tool/opcache/cli/x.php (HTTP 303)',
+            ],
+            'redirect without known target' => [
+                'curlinfo' => ['http_code' => 302],
+                'expected' => 'redirected the request (HTTP 302)',
+            ],
+        ];
+    }
+
+    /**
+     * Test that a redirected request of a CLI tool to its web part results in an error message.
+     *
+     * @dataProvider get_redirect_error_provider
+     * @covers ::tool_opcache_get_redirect_error
+     *
+     * @param array $curlinfo The curl info of the request to the web part.
+     * @param string|null $expected The expected part of the error message or null if no error message is expected.
+     */
+    public function test_get_redirect_error(array $curlinfo, ?string $expected): void {
+        $error = tool_opcache_get_redirect_error($curlinfo);
+
+        if ($expected === null) {
+            $this->assertSame('', $error);
+        } else {
+            $this->assertStringContainsString($expected, $error);
+            $this->assertStringContainsString('$CFG->wwwroot', $error);
+        }
     }
 
     /**

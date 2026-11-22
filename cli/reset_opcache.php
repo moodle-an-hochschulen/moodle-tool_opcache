@@ -34,10 +34,16 @@ require_once(__DIR__ . '/../locallib.php');
 [$options, $unrecognized] = cli_get_params(
     ['help' => false,
                                                     'url' => null,
-                                                    'reset' => false, ],
+                                                    'reset' => false,
+                                                    'insecure' => false,
+                                                    'domain' => null,
+                                                    'verbose' => false, ],
     ['h' => 'help',
                                                     'u' => 'url',
     'r' => 'reset',
+    'k' => 'insecure',
+    'd' => 'domain',
+    'v' => 'verbose',
     ]
 );
 if ($unrecognized) {
@@ -53,6 +59,14 @@ if ($options['help'] || !($options['url']) || !($options['reset'])) {
 Options:
 -u, --url       Full URL to reset_opcache_web.php
 -r, --reset     Reset PHP opcache on this server
+-k, --insecure  Do not verify the TLS certificate of the webserver
+                (for example if it uses a self-signed certificate
+                or if its certificate does not match the hostname in the URL)
+-d, --domain    Hostname which is sent as Host header to the webserver
+                (for example if the URL contains an IP address
+                instead of the hostname of the Moodle site),
+                optionally with a port (example.com:8443)
+-v, --verbose   Print verbose information about the request to STDERR
 -h, --help      Print out this help
 
 Example (run from the Moodle root directory):
@@ -73,24 +87,29 @@ if (!tool_opcache_is_cli_tool_enabled('reset')) {
 // Clean CLI parameters.
 $options['url'] = clean_param($options['url'], PARAM_URL);
 
+// Die if the domain is not a valid hostname.
+if (tool_opcache_get_host_header($options['domain']) === false) {
+    cli_error('The domain must be a plain hostname or IP address (optionally with a port) without protocol and path.');
+}
+
 
 // Reset opcache on webserver.
-$curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
-                                                   // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
-                                                   // that the web part of this CLI tool is fetched.
-$curloptions = [
-        'FRESH_CONNECT' => true,
-        'RETURNTRANSFER' => true,
-        'FORBID_REUSE' => true,
-        'HEADER' => false,
-        'CONNECTTIMEOUT' => 5,
-];
-$params = ['secret' => tool_opcache_get_secretkey('reset', true)];
-$curlret = $curl->get($options['url'], $params, $curloptions);
+[$curlret, $curlerrno, $curlerror, $redirecterror] = tool_opcache_call_web_part(
+    'reset',
+    $options['url'],
+    (bool) $options['insecure'],
+    trim((string) $options['domain']),
+    (bool) $options['verbose']
+);
 
 // Die if the webserver could not be reached.
-if ($curl->get_errno()) {
-    cli_error('PHP opcache could not be reset as requested. The webserver could not be reached: ' . $curl->error);
+if ($curlerrno) {
+    cli_error('PHP opcache could not be reset as requested. The webserver could not be reached: ' . $curlerror);
+}
+
+// Die if the webserver redirected the request (for example because the given URL does not match $CFG->wwwroot).
+if ($redirecterror !== '') {
+    cli_error('PHP opcache could not be reset as requested. ' . $redirecterror);
 }
 
 // Echo return string and exit with return status.

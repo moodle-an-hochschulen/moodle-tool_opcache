@@ -36,11 +36,17 @@ require_once(__DIR__ . '/../locallib.php');
     ['help' => false,
                                                     'url' => null,
                                                     'warning' => 80,
-                                                    'critical' => 90, ],
+                                                    'critical' => 90,
+                                                    'insecure' => false,
+                                                    'domain' => null,
+                                                    'verbose' => false, ],
     ['h' => 'help',
                                                     'u' => 'url',
                                                     'w' => 'warning',
     'c' => 'critical',
+    'k' => 'insecure',
+    'd' => 'domain',
+    'v' => 'verbose',
     ]
 );
 if ($unrecognized) {
@@ -61,6 +67,14 @@ Options:
 -u, --url       Full URL to check_opcache_web.php
 -w, --warning   Threshold for warning (Default: 80)
 -c, --critical  Threshold for critical (Default: 90)
+-k, --insecure  Do not verify the TLS certificate of the webserver
+                (for example if it uses a self-signed certificate
+                or if its certificate does not match the hostname in the URL)
+-d, --domain    Hostname which is sent as Host header to the webserver
+                (for example if the URL contains an IP address
+                instead of the hostname of the Moodle site),
+                optionally with a port (example.com:8443)
+-v, --verbose   Print verbose information about the request to STDERR
 -h, --help      Print out this help
 
 Example (run from the Moodle root directory):
@@ -90,26 +104,34 @@ if ($options['warning'] > $options['critical']) {
     exit($returnstatus);
 }
 
+// Die if the domain is not a valid hostname.
+if (tool_opcache_get_host_header($options['domain']) === false) {
+    cli_writeln('UNKNOWN - The domain must be a plain hostname or IP address (optionally with a port) ' .
+            'without protocol and path.');
+    exit($returnstatus);
+}
+
 
 // Fetch Opcache figures from webserver.
-$curl = new curl(['ignoresecurity' => true]); // The ignoresecurity option means that $CFG->curlsecurityblockedhosts is
-                                                   // ignored by purpose. Otherwise, $CFG->curlsecurityblockedhosts might prevent
-                                                   // that the web part of this CLI tool is fetched.
-$curloptions = [
-    'FRESH_CONNECT' => true,
-    'RETURNTRANSFER' => true,
-    'FORBID_REUSE' => true,
-    'HEADER' => false,
-    'CONNECTTIMEOUT' => 5,
-];
-$params = ['secret' => tool_opcache_get_secretkey('check', true)];
-$curlret = $curl->get($options['url'], $params, $curloptions);
+[$curlret, $curlerrno, $curlerror, $redirecterror] = tool_opcache_call_web_part(
+    'check',
+    $options['url'],
+    (bool) $options['insecure'],
+    trim((string) $options['domain']),
+    (bool) $options['verbose']
+);
+
+// Die if the webserver redirected the request (for example because the given URL does not match $CFG->wwwroot).
+if ($redirecterror !== '') {
+    cli_writeln('UNKNOWN - ' . $redirecterror);
+    exit(3);
+}
 
 // Evaluate the response of the webserver.
 [$returnstatus, $out] = tool_opcache_evaluate_check_response(
     $curlret,
-    $curl->get_errno(),
-    (string) $curl->error,
+    $curlerrno,
+    $curlerror,
     $options['warning'],
     $options['critical']
 );
