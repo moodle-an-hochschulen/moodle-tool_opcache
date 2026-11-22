@@ -1,5 +1,9 @@
 <?php
 
+// Moodle modification: Prevent that this file is run directly, i.e. without Moodle's access control in ../../index.php.
+// This line is not part of the upstream file and has to be re-added after each update, see UPGRADE.md.
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * OPcache GUI
  *
