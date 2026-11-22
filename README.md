@@ -74,11 +74,9 @@ The Opcache-GUI which is used within this plugin is using ES6 Javascript code. I
 Security note
 -------------
 
-The Opcache-GUI was added as a library to this Moodle plugin and was renamed to /lib/opcache-gui/index.php.inc.
+The Opcache-GUI was added as a library to this Moodle plugin and was renamed to /lib/opcache-gui/index.php.inc. It is only run through the plugin's admin page, where access is controlled by Moodle's capability checks and where its write operations are protected with Moodle's sesskey.
 
-There is a potential for sensitive data leak, not personal data but data about the webserver's PHP configuration, if your webserver is configured to interpret *.inc files as PHP. An anonymous user could then visit the library's index page directly via https://yourmoodle.com/admin/tool/opcache/lib/opcache-gui/index.php.inc and would see the Opcache-GUI circumventing Moodle's access control.
-
-Please make sure that your webserver does not interpret *.inc files as PHP (which should be the default) or take any other measure that this file can not be accessed directly by a browser.
+The library file refuses to run if it is requested directly by a browser, and on Apache webservers a .htaccess file additionally denies such requests. On other webservers, a direct request might return the source code of the library file as plain text, which is not a problem as this code is publicly available anyway.
 
 
 CLI tool

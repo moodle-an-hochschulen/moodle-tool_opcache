@@ -23,6 +23,14 @@ Upstream changes
   php ./build/build.php --local-js
   cp index.php <path-to-tool_opcache>/lib/opcache-gui/index.php.inc
 ```
+* After replacing the file, you have to re-add our only local modification to it: Add the following lines directly below the opening `<?php` tag of /lib/opcache-gui/index.php.inc. They prevent that the Opcache-GUI is run directly, i.e. without Moodle's access control, on webservers which interpret *.inc files as PHP. A PHPUnit test (`test_bundled_gui_is_guarded`) runs the file directly and fails if these lines are missing or if any other code is run before them.
+```
+// Moodle modification: Prevent that this file is run directly, i.e. without Moodle's access control in ../../index.php.
+// This line is not part of the upstream file and has to be re-added after each update, see UPGRADE.md.
+defined('MOODLE_INTERNAL') || die();
+```
+* The /lib/opcache-gui/.htaccess file is not part of the upstream code either. It denies direct requests to the Opcache-GUI file on Apache webservers and has to be kept when the library is updated. If the Opcache-GUI file should ever be renamed, the file name in .htaccess has to be adapted as well.
+* Update the version of the library in thirdpartylibs.xml.
 * The write operations of the Opcache-GUI (currently resetting the cache with the `reset` parameter and invalidating files with the `invalidate` and `invalidate_searched` parameters) are protected by a sesskey check in index.php. The Opcache-GUI file itself is not patched for this. Instead, its output is processed in index.php: The sesskey is inserted into the relative URLs which start with a write operation parameter (like `?reset=1`) and an axios request interceptor is added which adds the sesskey to the AJAX requests with a write operation parameter in real-time mode. With each update of the Opcache-GUI file, check if new write operations (i.e. request parameters which make the Opcache-GUI change the opcache or anything else) have been added upstream or if the way how the Opcache-GUI builds the URLs and requests for the write operations has changed. If so, adapt tool_opcache_get_write_params() and the output processing functions in locallib.php and extend the tests.
 
 
