@@ -4,7 +4,7 @@ moodle-tool_opcache
 Changes
 -------
 
-### Unreleased
+### v5.3-r3
 
 * 2026-11-22 - Improvement: Deny direct requests to the Opcache GUI library file with a .htaccess file on Apache webservers which process .htaccess files, credits to Mark Sharp.
 * 2026-11-22 - Improvement: Let the Opcache GUI library file refuse to run if it is not included by Moodle. Until now, on webservers which are configured to interpret *.inc files as PHP, an anonymous user could have run the Opcache GUI by requesting the library file directly, circumventing Moodle's access control and sesskey check. This is prevented now regardless of the webserver configuration, including a PHPUnit test.
